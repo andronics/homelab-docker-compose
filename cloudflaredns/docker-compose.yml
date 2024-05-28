@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  
+  server:
+    image: cr.hotio.dev/hotio/cloudflareddns
+    container_name: cloudflaredns_server
+    env_file:
+      - .env
+    environment:
+      CF_APITOKEN: ${CF_APITOKEN:-"super_secret_api_token"}
+      CF_HOSTS: ${CF_HOSTS-"host.company.tld"}
+      CF_RECORDTYPES: ${CF_RECORDTYPES:-"type"}
+      CF_ZONES: ${CF_ZONES:-"super_secret_zone_id"}
+      DETECTION_MODE: dig-google.com
+      INTERVAL: 300
+      LOG_LEVEL: 3
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/London
+    restart: unless-stopped
+    volumes:
+      - server_config:/config
+
+volumes:
+  server_config:
+    driver: local

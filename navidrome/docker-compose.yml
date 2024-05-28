@@ -1,0 +1,62 @@
+version: "3"
+
+services:
+  
+  server:
+    image: deluan/navidrome:latest
+    container_name: navidrome_server
+    configs:
+      - source: server_config
+        target: /app/navidrome.toml
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.navidrome.entrypoints: https-internal,https-external
+      traefik.http.services.navidrome.loadbalancer.passHostHeader: true
+    networks:
+      - proxy
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - server_data:/data
+      - /mnt/media/music:/music
+ 
+networks:
+  proxy:
+    external: true
+
+volumes:
+  server_data:
+    driver: local
+  server_music:
+    driver: local
+
+configs:
+  server_config:
+    content: |
+      LogLevel = 'DEBUG'
+      ScanSchedule = '@every 1h'
+      TranscodingCacheSize = '150MiB'
+      SessionTimeout = '24h'
+
+      EnableGravatar = true
+      EnableSharing = true
+      EnableTranscodingConfig = true
+
+      DataFolder = "/data"
+      MusicFolder = "/music"
+
+      [LastFM]
+      ApiKey = "${NAVIDROME_LASTFM_API_KEY:-super_secret_lastfm_api_key}"
+      Secret = "${NAVIDROME_LASTFM_SECRET:-super_secret_lastfm_secret}"
+      Language = "en"
+
+      [Spotify]
+      ID = "${NAVIDROME_SPOTIFY_ID:-super_secret_spotify_id}"
+      Secret = "${NAVIDROME_SPOTIFY_SECRET:-super_secret_lastfm_secret}"
+
+      [Prometheus]
+      Enabled = true

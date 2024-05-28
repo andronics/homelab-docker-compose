@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  
+  server:
+    image: alexta69/metube:latest
+    container_name: metube_server
+    environment:
+      CUSTOM_DIRS: true
+      DOWNLOAD_DIR: /downloads
+      STATE_DIR: /config/state
+      UID: 1000
+      GID: 1000
+      UMASK: 022
+      YTDL_OPTIONS: "{\"cookiefile\": \"/config/cookies.txt\"}"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.metube.entrypoints: https-internal,https-external
+      traefik.http.services.metube.loadbalancer.passHostHeader: true
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - server_config:/config
+      - /mnt/transfer/complete/metube:/downloads
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local

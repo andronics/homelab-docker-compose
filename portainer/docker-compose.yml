@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  
+  server:
+    image: portainer/portainer-ce:latest
+    container_name: portainer_server
+    command:
+      - "--admin-password"
+      - "${PORTAINER_ADMIN_PASSWORD}"
+    env_file:
+      - .env
+    environment:
+      PORTAINER_ADMIN_PASSWORD: ${PORTAINER_ADMIN_PASSWORD:-"encryted_htpasswd"}
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.portainer.entrypoints: https-internal
+      traefik.http.services.portainer.loadbalancer.passHostHeader: true
+      traefik.http.services.portainer.loadbalancer.server.port: 9000
+    networks:
+      - proxy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - server_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  proxy:
+    external: true
+    
+volumes:
+  server_data:
+    driver: local

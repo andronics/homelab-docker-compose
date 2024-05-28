@@ -1,0 +1,83 @@
+version: "3.9"
+
+x-env-variables: &env-variables
+  DB_HOSTNAME: &db_hostname immich-database
+  DB_DATABASE_NAME: &db_database_name random-db
+  DB_PASSWORD: &db_password random-password
+  DB_USERNAME: &db_username random-user
+  IMMICH_SERVER_URL: &immich_server_url http://immich-server:3001
+  IMMICH_WEB_URL: &immich_web_url http://immich-web:3000
+  REDIS_HOSTNAME: &redis_hostname immich-redis
+  TYPESENSE_API_KEY: &typesense_api_key some_random_string
+  TYPESENSE_DATA_DIR: &typesense_data_dir /data
+  TYPESENSE_HOST: &typesense_host immich-typesense
+  TZ: &timezone Europe/London
+
+services:
+
+  exporter:
+    image: ghcr.io/onedr0p/exportarr:v1.6.0
+    container_name: sonarr_exporter
+    command: ["sonarr"]
+    environment:
+      APIKEY: ${SONARR_API_KEY:-super_secret_api_key}
+      PORT: 9990
+      URL: "http://sonarr_server:${SONARR_PORT:-8989}"
+    networks:
+      - backend
+    restart: unless-stopped
+  
+  server:
+    image: ghcr.io/linuxserver/sonarr:develop
+    container_name: sonarr_server
+    configs:
+      - source: server_config
+        target: /config/config.xml
+    environment:
+      AUTO_UPDATE: true
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      overwatch.enable: true
+      overwatch.backup.daily.schedule: '* 5 * * *'
+      overwatch.backup.daily.paths: /config
+      overwatch.backup.daily.cmd.post: ls -al
+      overwatch.backup.daily.cmd.pre: ls -al
+      overwatch.backup.daily.retention: 7
+      overwatch.backup.daily.stop: true
+      overwatch.backup.daily.type: differential
+      traefik.enable: true
+      traefik.http.routers.sonarr.entrypoints: https-internal,https-external
+      traefik.http.routers.sonarr.middlewares: sonarr@docker
+      traefik.http.middlewares.sonarr.headers.customrequestheaders.Authorization: Basic ${SONARR_BASIC_AUTH_CREDENTIALS:-super_secret_basic_auth_credentials}
+      traefik.http.services.sonarr.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - server_config:/config
+      - /mnt/media:/mnt/media
+      - /mnt/transfer:/mnt/transfer
+
+networks:
+  backend:
+    external: true
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local
+
+configs:
+  server_config:
+    content: |
+      <Config>
+        <ApiKey>${SONARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${SONARR_PORT:-8989}</Port>
+        <LogLevel>${SONARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>Basic</AuthenticationMethod>
+        <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+      </Config>

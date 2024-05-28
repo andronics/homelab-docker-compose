@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  
+  server:
+    image: lscr.io/linuxserver/kavita:latest
+    container_name: kavita_server
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.kavita.entrypoints: https-internal,https-external
+      traefik.http.services.kavita.loadbalancer.passHostHeader: true
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - server_config:/config
+      - /mnt/media/ebooks:/data
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local

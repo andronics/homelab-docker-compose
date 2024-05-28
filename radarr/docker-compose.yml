@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+
+  exporter:
+    image: ghcr.io/onedr0p/exportarr:v1.6.0
+    container_name: radarr_exporter
+    command: ["radarr"]
+    environment:
+      APIKEY: ${RADARR_API_KEY:-super_secret_api_key}
+      PORT: 9990
+      URL: "http://radarr_server:${RADARR_PORT:-7878}"
+    networks:
+      - backend
+    restart: unless-stopped
+  
+  server:
+    image: ghcr.io/linuxserver/radarr:latest
+    container_name: radarr_server
+    configs:
+      - source: server_config
+        target: /config/config.xml
+    environment:
+      AUTO_UPDATE: true
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.radarr.entrypoints: https-internal,https-external
+      traefik.http.services.radarr.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - server_config:/config
+      - /mnt/media:/mnt/media
+      - /mnt/transfer:/mnt/transfer
+      
+networks:
+  backend:
+    external: true
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local
+
+configs:
+  server_config:
+    content: |
+      <Config>
+        <ApiKey>${RADARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${RADARR_PORT:-7878}</Port>
+        <LogLevel>${RADARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>None</AuthenticationMethod>
+        <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+      </Config>

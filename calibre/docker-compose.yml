@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  
+  server:
+    image: ghcr.io/linuxserver/calibre:latest
+    container_name: calibre_server
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/London
+      UMASK: 022
+    labels:
+      traefik.enable: true
+      traefik.http.routers.calibre.entrypoints: https-internal,https-external
+      traefik.http.services.calibre.loadbalancer.passHostHeader: true
+      traefik.http.services.calibre.loadbalancer.server.port: 8080
+    networks:
+      - proxy
+    restart: unless-stopped
+    security_opt:
+      - "seccomp=unconfined"
+    volumes:
+      - server_config:/config
+      - /mnt/media:/mnt/media
+      
+networks:
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local

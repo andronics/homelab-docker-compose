@@ -1,0 +1,25 @@
+serversion: "3"
+
+services:
+
+  server:
+    image: ghcr.io/andronics/overwatch:latest
+    container_name: overwatch_server
+    labels:
+      overwatch.enable: true
+      overwatch.defaults.retention: 7
+      overwatch.defaults.stop: false
+      overwatch.defaults.type: full
+      traefik.enable: true
+      traefik.http.routers.overwatch.entrypoints: https-internal,https-external
+      traefik.http.services.overwatch.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+networks:
+  backend:
+    external: true

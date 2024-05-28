@@ -1,0 +1,154 @@
+version: "3.9"
+
+services:
+  
+  server:
+    image: ghcr.io/authelia/authelia:latest
+    command:
+      - "--config"
+      - "/config/config.yml,/config/access-control.yml"
+    container_name: authelia_server
+    configs:
+      - source: server_access_control
+        target: /config/access-control.yml
+      - source: server_config
+        target: /config/config.yml
+    env_file:
+      - .env
+    environment:
+      AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET:-"super_secret_jwt_secret"}
+      AUTHELIA_NOTIFIER_SMTP_PASSWORD: ${AUTHELIA_NOTIFIER_SMTP_PASSWORD:-"super_secret_notifier_smtp_password"}
+      AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET:-"super_secret_session_secret"}
+      AUTHELIA_STORAGE_ENCRYPTION_KEY: ${AUTHELIA_STORAGE_ENCRYPTION_KEY:-"super_secret_storage_encryption_key"}
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.authelia.entrypoints: https-internal,https-external
+      traefik.http.routers.authelia.rule: Host(`auth.andronics.io`)
+      traefik.http.services.authelia.loadbalancer.passHostHeader: true
+    networks:
+      - proxy
+    volumes:
+      - server_config:/config
+      - server_data:/var/lib/authelia
+      - server_log:/var/log/authelia
+      - /etc/localtime:/etc/localtime
+      
+networks:
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local
+  server_data:
+    driver: local 
+  server_log:
+    driver: local
+
+configs:
+  server_access_control:
+    content: |
+      access_control:
+        default_policy: one_factor
+        networks:
+          - name: internal
+            networks:
+              - '172.16.0.0/20'
+          - name: local
+            networks:
+              - '192.168.0.0/24'
+        rules:
+          - policy: bypass
+            domain:
+              - 'andronics.io'
+              - '*.andronics.io'
+            networks:
+              - 'internal'
+              - 'local'
+          - policy: two_factor
+            domain:
+              - 'code.andronics.io'
+              - 'portainer.andronics.io'
+              - 'traefik.andronics.io'
+          - policy: bypass
+            domain:
+              - 'andronics.io'
+              - 'audiobookshelf.andronics.io'
+              - 'auth.andronics.io'
+              - 'deluge.andronics.io'
+              - 'emby.andronics.io'
+              - 'immich.andronics.io'
+              - 'navidrome.andronics.io'
+  server_config:
+    content: |
+      certificates_directory: /var/lib/authelia/certificates
+      default_2fa_method: "totp"
+      default_redirection_url: https://auth.andronics.io
+      theme: dark
+
+      authentication_backend:
+        file:
+          path: /var/lib/authelia/users.yml
+          password:
+            algorithm: argon2id
+            iterations: 1
+            salt_length: 16
+            parallelism: 8
+            memory: 64
+          watch: true
+
+      log:
+        level: info
+        file_path: /var/log/authelia/authelia.log
+
+      telemetry:
+        metrics:
+          enabled: true
+          address: "tcp://0.0.0.0:9959"
+          buffers:
+            read: 4096
+            write: 4096
+          timeouts:
+            read: 6s
+            write: 6s
+            idle: 30s
+
+      notifier:
+        disable_startup_check: false
+        smtp:
+          username: ${AUTHELIA_NOTIFIER_SMTP_USERNAME:-super_secret_notifier_smtp_username}
+          sender: Authelia <admin@andronics.io>
+          host: smtp.gmail.com
+          port: 587
+
+      ntp:
+        address: "time.cloudflare.com:123"
+        max_desync: 3s
+        disable_startup_check: true
+        disable_failure: false
+
+      regulation:
+        max_retries: 3
+        find_time: 2m
+        ban_time: 5m
+
+      session:
+        name: authelia_session
+        domain: andronics.io
+        expiration: 24h # 24 hours
+        inactivity: 6h # 5 minutes
+        remember_me_duration: 1M # 1 month
+        same_site: lax
+
+      server:
+        host: 0.0.0.0
+        port: 9091
+
+      storage:
+        local:
+          path: /var/lib/authelia/storage.sqlite3
+
+      totp:
+        issuer: authelia.com
+      

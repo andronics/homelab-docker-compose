@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+
+  exporter:
+    image: ghcr.io/onedr0p/exportarr:v1.6.0
+    container_name: lidarr_exporter
+    command: ["lidarr"]
+    environment:
+      APIKEY: ${LIDARR_API_KEY:-super_secret_api_key}
+      PORT: 9990
+      URL: "http://lidarr_server:${LIDARR_PORT:-8686}"
+    networks:
+      - backend
+    restart: unless-stopped
+
+  server:
+    image: ghcr.io/linuxserver/lidarr:latest
+    container_name: lidarr_server
+    configs:
+      - source: server_config
+        target: /config/config.xml
+    environment:
+      AUTO_UPDATE: true
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.lidarr.entrypoints: https-internal,https-external
+      traefik.http.services.lidarr.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - server_config:/config
+      - /mnt/media:/mnt/media
+      - /mnt/transfer:/mnt/transfer
+
+networks:
+  backend:
+    external: true
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local
+
+configs:
+  server_config:
+    content: |
+      <Config>
+        <ApiKey>${LIDARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${LIDARR_PORT:-8686}</Port>
+        <LogLevel>${LIDARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>None</AuthenticationMethod>
+        <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+      </Config>

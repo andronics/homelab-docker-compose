@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  
+  server:
+    image: ghcr.io/advplyr/audiobookshelf
+    container_name: audiobookshelf_server
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.audiobookshelf.entrypoints: https-internal,https-external
+      traefik.http.services.audiobookshelf.loadbalancer.passHostHeader: true
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - server_config:/config
+      - server_data:/metadata
+      - /mnt/media:/mnt/media
+      - /mnt/transfer:/mnt/transfer
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  server_config:
+    driver: local
+  server_data:
+    driver: local        
