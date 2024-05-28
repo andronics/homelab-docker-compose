@@ -14,8 +14,6 @@ services:
         target: /etc/traefik.d/authelia.yml
       - source: server_dynamic_authentik
         target: /etc/traefik.d/authentik.yml
-      - source: server_dynamic_header_transformations
-        target: /etc/traefik.d/header_transformations.yml
       - source: server_dynamic_themes
         target: /etc/traefik.d/themes.yml
     extra_hosts:
@@ -132,9 +130,6 @@ configs:
           address: :51820/udp
       experimental:
         plugins:
-          header-transformation:
-            modulename: "github.com/tomMoulard/htransformation"
-            version: "v0.3.0"
           theme-park:
             modulename: "github.com/packruler/traefik-themepark"
             version: "v1.2.2"
@@ -194,33 +189,6 @@ configs:
                         - X-authentik-meta-provider
                         - X-authentik-meta-app
                         - X-authentik-meta-version
-  server_dynamic_header_transformations:
-    content: |
-      http:
-        middlewares:
-          transformations-sonarr:
-            plugin:
-              header-transformation:
-                Rules:    
-                  - Rule:
-                    Name: 'X-Forwarded-For'
-                    Header: 'X-Forwarded-For'
-                    Value: '192.168.0.1'
-                    SetOnResponse: 'false'
-                    Type: 'Set'
-                  - Rule:
-                    Name: 'X-Real-Ip'
-                    Header: 'X-Real-Ip'
-                    Value: '192.168.0.1'
-                    SetOnResponse: 'false'
-                    Type: 'Set'
-                  - Rule:
-                    Name: 'Set REMOTE-HOST'
-                    Header: 'REMOTE-HOST'
-                    Value: '192.168.0.1'
-                    SetOnResponse: 'false'
-                    Type: 'Set'
-
   server_dynamic_themes:
     content: |
       http:
