@@ -9,7 +9,7 @@ services:
       - source: server_auth
         target: /config/auth
       - source: server_autoadd
-        target: /config/autodd.conf
+        target: /config/autoadd.conf
       - source: server_core
         target: /config/core.conf
       - source: server_label
@@ -36,6 +36,8 @@ services:
   webui:
     image: ghcr.io/relvacode/storm:latest
     container_name: deluge_webui
+    depends_on:
+      - server
     env_file:
       - .env
     environment:
@@ -82,7 +84,7 @@ configs:
                   "append_extension": ".added",
                   "append_extension_toggle": true,
                   "enabled": true,
-                  "path": "/mnt/transfer/autoload",
+                  "path": "/mnt/transfer/autoload"
               }
           }
       }
@@ -134,23 +136,23 @@ configs:
           "labels": {
               "audiobooks": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/audiobooks",
+                  "move_completed_path": "/mnt/transfer/complete/audiobooks"
               },
               "ebooks": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/ebooks",
+                  "move_completed_path": "/mnt/transfer/complete/ebooks"
               },
               "games": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/games",
+                  "move_completed_path": "/mnt/transfer/complete/games"
               },
               "movies": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/movies",
+                  "move_completed_path": "/mnt/transfer/complete/movies"
               },
               "music": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/music",
+                  "move_completed_path": "/mnt/transfer/complete/music"
               },
               "seedbox": {
                   "auto_add": true,
@@ -158,19 +160,19 @@ configs:
                       "http://td.jumbohostpro.eu,https://sync.td-peers.com"
                   ],
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/seedbox",
+                  "move_completed_path": "/mnt/transfer/complete/seedbox"
               },
               "software": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/software",
+                  "move_completed_path": "/mnt/transfer/complete/software"
               },
               "standup": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/standup",
+                  "move_completed_path": "/mnt/transfer/complete/standup"
               },
               "tv": {
                   "move_completed": true,
-                  "move_completed_path": "/mnt/transfer/complete/tv",
+                  "move_completed_path": "/mnt/transfer/complete/tv"
               }
           },
           "torrent_labels": {}
