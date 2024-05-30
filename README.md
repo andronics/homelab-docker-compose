@@ -71,6 +71,8 @@ This command starts the service in detached mode.
 * [Authelia](https://github.com/andronics/homelab-docker-compose/blob/main/authelia/docker-compose.yml): Single Sign-On Multi-Factor Portal For Web Apps
 * [Calibre](https://github.com/andronics/homelab-docker-compose/blob/main/calibre/docker-compose.yml):  Powerful eBook Manager
 * [CloudflareDNS](https://github.com/andronics/homelab-docker-compose/blob/main/cloudflaredns/docker-compose.yml): Manages Cloudflare DNS Based On Current Public IP
+* [Code](https://github.com/andronics/homelab-docker-compose/blob/main/code/docker-compose.yml): VS Code in the browser
+* [Crowdsec](https://github.com/andronics/homelab-docker-compose/blob/main/crowdsec/docker-compose.yml): Curated Threat Intelligence Powered by the Crowd
 * [Deluge](https://github.com/andronics/homelab-docker-compose/blob/main/deluge/docker-compose.yml): Lightweight BitTorrent Client
 * [Emby](https://github.com/andronics/homelab-docker-compose/blob/main/emby/docker-compose.yml): Media Server That Streams Audio & Video To Various Devices
 * [Flaresolverr](https://github.com/andronics/homelab-docker-compose/blob/main/flaresolverr/docker-compose.yml): Proxy Server To Bypass Cloudflare Protection
@@ -80,6 +82,7 @@ This command starts the service in detached mode.
 * [Lidarr](https://github.com/andronics/homelab-docker-compose/blob/main/lidarr/docker-compose.yml): Music Collection Manager for Usenet and BitTorrent
 * [Metube](https://github.com/andronics/homelab-docker-compose/blob/main/metube/docker-compose.yml): YouTube-DL Web Interface
 * [Navidrome](https://github.com/andronics/homelab-docker-compose/blob/main/navidrome/docker-compose.yml): Your Music Collection From Anywhere
+* [Ntfy](https://github.com/andronics/homelab-docker-compose/blob/main/ntfy/docker-compose.yml): Send Push Notifications To Your Phone via PUT/POST
 * [NordVPN](https://github.com/andronics/homelab-docker-compose/blob/main/nordvpn/docker-compose.yml): Lightweigth BitTorrent Client
 * [PiHole](https://github.com/andronics/homelab-docker-compose/blob/main/pihole/docker-compose.yml): Network-wide Ad Blocking
 * [Portainer](https://github.com/andronics/homelab-docker-compose/blob/main/portainer/docker-compose.yml): Container Management
@@ -92,6 +95,8 @@ This command starts the service in detached mode.
 * [Traefik](https://github.com/andronics/homelab-docker-compose/blob/main/traefik/docker-compose.yml): Cloud Native Application Proxy
 * [Trakarr](https://github.com/andronics/homelab-docker-compose/blob/main/trakarr/docker-compose.yml): Trakt Monitoring Daemon That Adds New TV Series & Movies
 * [Unpackerr](https://github.com/andronics/homelab-docker-compose/blob/main/unpackerr/docker-compose.yml): Monitors Downloads And Automatically Extracts Archives
+* [Vaultwarden](https://github.com/andronics/homelab-docker-compose/blob/main/vaultwarden/docker-compose.yml): Bitwarden Server API written in Rust
+* [Watchtower](https://github.com/andronics/homelab-docker-compose/blob/main/watchtower/docker-compose.yml): Automated Docker Container Base Image Updates
 
 For detailed information on each service, refer to the respective docker-compose.yml file and any accompanying documentation within the service directory.
 
@@ -114,7 +119,7 @@ Contributions are welcome! If you have improvements or additional services to ad
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/andronics/homelab-docker-compose/blob/main/LICENSE) file for details.
 
 ## Contact
-For questions, suggestions, or feedback, please open an issue on GitHub or contact me at your.email@example.com.
+For questions, suggestions, or feedback, please open an issue on GitHub or contact me at andronics@gmail.com.
