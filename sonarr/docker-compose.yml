@@ -39,14 +39,6 @@ services:
       PGID: 1000
       TZ: Europe/London
     labels:
-      overwatch.enable: true
-      overwatch.backup.daily.schedule: '* 5 * * *'
-      overwatch.backup.daily.paths: /config
-      overwatch.backup.daily.cmd.post: ls -al
-      overwatch.backup.daily.cmd.pre: ls -al
-      overwatch.backup.daily.retention: 7
-      overwatch.backup.daily.stop: true
-      overwatch.backup.daily.type: differential
       traefik.enable: true
       traefik.http.routers.sonarr.entrypoints: https-internal,https-external
       traefik.http.routers.sonarr.middlewares: sonarr@docker
