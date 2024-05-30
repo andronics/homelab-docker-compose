@@ -71,5 +71,5 @@ configs:
         <Port>${SONARR_PORT:-8989}</Port>
         <LogLevel>${SONARR_LOG_LEVEL:-info}</LogLevel>
         <AuthenticationMethod>Basic</AuthenticationMethod>
-        <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+        <AuthenticationRequired>Enabled</AuthenticationRequired>
       </Config>
