@@ -20,7 +20,6 @@ services:
       - server_config:/config
       - server_data:/metadata
       - /mnt/media:/mnt/media
-      - /mnt/transfer:/mnt/transfer
 
 networks:
   proxy:
