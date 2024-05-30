@@ -28,6 +28,8 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.readarr.entrypoints: https-internal,https-external
+      traefik.http.routers.readarr.middlewares: readarr@docker
+      traefik.http.middlewares.readarr.headers.customrequestheaders.Authorization: Basic ${READARR_BASIC_AUTH_CREDENTIALS:-super_secret_basic_auth_credentials}
       traefik.http.services.readarr.loadbalancer.passHostHeader: true
     networks:
       - backend
@@ -55,6 +57,6 @@ configs:
         <ApiKey>${READARR_API_KEY:-super_secret_api_key}</ApiKey>
         <Port>${READARR_PORT:-8787}</Port>
         <LogLevel>${READARR_LOG_LEVEL:-info}</LogLevel>
-        <AuthenticationMethod>None</AuthenticationMethod>
-        <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+        <AuthenticationMethod>Basic</AuthenticationMethod>
+        <AuthenticationRequired>Enabled</AuthenticationRequired>
       </Config>
