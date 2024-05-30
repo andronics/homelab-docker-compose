@@ -14,6 +14,8 @@ services:
         target: /etc/traefik.d/authelia.yml
       - source: server_dynamic_authentik
         target: /etc/traefik.d/authentik.yml
+      - source: server_dynamic_crowdsec
+        target: /etc/traefik.d/crowdsec.yml
       - source: server_dynamic_themes
         target: /etc/traefik.d/themes.yml
     extra_hosts:
@@ -25,6 +27,7 @@ services:
       traefik.http.routers.traefik.service: api@internal
       traefik.http.services.traefik.loadbalancer.passHostHeader: true
     networks:
+      - backend
       - proxy
     ports: 
       - 25:25         # smtp-internal
@@ -46,6 +49,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
 networks:
+  backend:
+    external: true
   proxy:
     external: true
     
@@ -57,6 +62,7 @@ volumes:
 
 
 configs:
+
   server_config:
     content: |
       accessLog:
@@ -99,6 +105,8 @@ configs:
           forwardedHeaders:
             insecure: true
           http:
+            middlewares:
+              - crowdsec-bouncer@file
             redirections:
               entryPoint:
                 scheme: https
@@ -106,6 +114,8 @@ configs:
         http-internal:
           address: :80/tcp
           http:
+            middlewares:
+              - crowdsec-bouncer@file
             redirections:
               entryPoint:
                 scheme: https
@@ -116,14 +126,16 @@ configs:
             insecure: true
           http:
             middlewares:
-              - "authelia@file"
+              - authelia@file
+              - crowdsec-bouncer@file
             tls:
               certResolver: production
         https-internal:
           address: :443/tcp
           http:
             middlewares:
-              - "authelia@file"
+              - authelia@file
+              - crowdsec-bouncer@file
             tls:
               certResolver: production
         wireguard:
@@ -189,6 +201,14 @@ configs:
                         - X-authentik-meta-provider
                         - X-authentik-meta-app
                         - X-authentik-meta-version
+  server_dynamic_crowdsec:
+    content: |
+      http:
+        middlewares:
+            crowdsec-bouncer:
+                forwardAuth:
+                    address: http://traefik_bouncer:8080/api/v1/forwardAuth
+                    trustForwardHeader: true
   server_dynamic_themes:
     content: |
       http:
