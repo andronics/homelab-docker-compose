@@ -135,26 +135,32 @@ configs:
       }{
           "labels": {
               "audiobooks": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/audiobooks"
               },
               "ebooks": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/ebooks"
               },
               "games": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/games"
               },
               "movies": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/movies"
               },
               "music": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/music"
               },
               "seedbox": {
+                  "apply_move_completed": true,
                   "auto_add": true,
                   "auto_add_trackers": [
                       "http://td.jumbohostpro.eu,https://sync.td-peers.com"
@@ -163,14 +169,17 @@ configs:
                   "move_completed_path": "/mnt/transfer/complete/seedbox"
               },
               "software": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/software"
               },
               "standup": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/standup"
               },
               "tv": {
+                  "apply_move_completed": true,
                   "move_completed": true,
                   "move_completed_path": "/mnt/transfer/complete/tv"
               }
