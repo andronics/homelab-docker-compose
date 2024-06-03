@@ -78,7 +78,7 @@ configs:
       protocols = "torrent"
 
       [[readarr]]
-      url = "http://readarr_server:8878"
+      url = "http://readarr_server:8787"
       api_key = "${UNPACKERR_READARR_API_KEY:-super_secret_readarr_api_key}"
       paths = ['/mnt/transfer/complete/books']
       protocols = "torrent"
