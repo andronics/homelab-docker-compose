@@ -56,7 +56,6 @@ Navigate to the directory of the desired service. If available copy `.env.sample
 $ cp '.env.sample' '.env'
 ```
 
-dfdfdsfdsfdsfd
 
 ```sh
 $ docker-compose --env-file './.env' up -d
@@ -78,7 +77,7 @@ This command starts the service in detached mode.
 * [Flaresolverr](https://github.com/andronics/homelab-docker-compose/blob/main/flaresolverr/docker-compose.yml): Proxy Server To Bypass Cloudflare Protection
 * [Homer](https://github.com/andronics/homelab-docker-compose/blob/main/homer/docker-compose.yml): Full Static HTML / JS Dashboard
 * [Immich](https://github.com/andronics/homelab-docker-compose/blob/main/immich/docker-compose.yml): Photo & Video Management Solution
-* [kavita](https://github.com/andronics/homelab-docker-compose/blob/main/kavita/docker-compose.yml): Multi Format Digital Library 
+* [kavita](https://github.com/andronics/homelab-docker-compose/blob/main/kavita/docker-compose.yml): Multi Format Digital Library
 * [Lidarr](https://github.com/andronics/homelab-docker-compose/blob/main/lidarr/docker-compose.yml): Music Collection Manager for Usenet and BitTorrent
 * [Metube](https://github.com/andronics/homelab-docker-compose/blob/main/metube/docker-compose.yml): YouTube-DL Web Interface
 * [Navidrome](https://github.com/andronics/homelab-docker-compose/blob/main/navidrome/docker-compose.yml): Your Music Collection From Anywhere
