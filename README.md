@@ -9,11 +9,16 @@ This repository contains Docker-Compose files used to manage and orchestrate var
    - [Cloning the Repository](#cloning-the-repository)
    - [Directory Structure](#directory-structure)
    - [Starting Services](#starting-services)
-4. [Available Services](#available-services)
-5. [Configuration](#configuration)
-6. [Contributing](#contributing)
-7. [License](#license)
-8. [Contact](#contact)
+4. [Secret Management](#secret-management)
+   - [How It Works](#how-it-works)
+   - [Prerequisites](#secret-management-prerequisites)
+   - [Initialising a New Machine](#initialising-a-new-machine)
+   - [Adding a New Service .env](#adding-a-new-service-env)
+5. [Available Services](#available-services)
+6. [Configuration](#configuration)
+7. [Contributing](#contributing)
+8. [License](#license)
+9. [Contact](#contact)
 
 ## Introduction
 This repository aims to simplify the setup and management of containerized services in a homelab environment using Docker Compose. Each service is defined in a separate compose file, making it easy to start, stop, and configure as needed.
@@ -60,6 +65,97 @@ $ docker compose up -d
 
 This command starts the service in detached mode.
 
+
+## Secret Management
+
+All `.env` files in this repository are encrypted at rest using a custom `git-crypt` implementation built on top of OpenSSL AES-256-CBC. Git's clean/smudge filter mechanism transparently encrypts files on `git add` and decrypts them on `git checkout` — no manual steps required once the key is in place.
+
+### How It Works
+
+```
+Working directory          Git object store
+─────────────────          ────────────────
+plaintext .env  ──clean──▶  encrypted blob  (what GitHub sees)
+plaintext .env  ◀─smudge──  encrypted blob  (restored on checkout)
+```
+
+- **clean** — runs on `git add`; pipes the file through `openssl enc -aes-256-cbc -pbkdf2 -salt` before writing to the index.
+- **smudge** — runs on `git checkout`; pipes the stored blob through `openssl dec -aes-256-cbc -pbkdf2` to restore plaintext in the working tree.
+
+The filter is wired up in `.git/config`:
+
+```ini
+[filter "git-crypt"]
+    clean    = git-crypt clean
+    smudge   = git-crypt smudge
+    required = true
+```
+
+And applied to all `*.env` files via `.gitattributes`:
+
+```
+*.env filter=git-crypt diff=git-crypt
+```
+
+The encryption key is resolved in priority order:
+
+1. `GIT_CRYPT_KEY` environment variable
+2. `pass show git/crypt-key` (GPG-encrypted password store)
+
+### Secret Management Prerequisites
+
+- [`pass`](https://www.passwordstore.org/) with a GPG key configured, **or** the `GIT_CRYPT_KEY` environment variable set
+- `openssl` (ships with most Linux distros and macOS)
+- The `git-crypt` script installed to your `$PATH`
+
+### Initialising a New Machine
+
+1. Install the `git-crypt` script:
+
+```sh
+# Place the script somewhere on your PATH, e.g.
+cp git-crypt ~/.local/bin/git-crypt
+chmod +x ~/.local/bin/git-crypt
+```
+
+2. Make the encryption key available:
+
+```sh
+# Option A — password store (recommended)
+pass insert git/crypt-key   # paste the shared key when prompted
+
+# Option B — environment variable
+export GIT_CRYPT_KEY='<shared-key>'
+```
+
+3. Initialise the git filters in the cloned repo:
+
+```sh
+git-crypt init
+```
+
+This configures the clean/smudge filters in `.git/config`. Existing `.env` files will be decrypted automatically on the next `git checkout` or by running:
+
+```sh
+git checkout -- .
+```
+
+### Adding a New Service .env
+
+1. Create the `.env` file in the service directory.
+2. Force-add it (`.env` is in `.gitignore` as a fallback safety net):
+
+```sh
+git add -f <service>/.env
+git commit -m "feat(<service>): Add encrypted .env"
+```
+
+The clean filter encrypts the file before it ever touches the index. Verify the stored blob is ciphertext with:
+
+```sh
+git show HEAD:<service>/.env | xxd | head -3
+# Should start with: 53 61 6c 74 65 64 5f 5f  (ASCII "Salted__")
+```
 
 ## Available Services
 
