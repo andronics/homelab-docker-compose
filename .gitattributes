@@ -1,0 +1,6 @@
+# Git-crypt encrypted files
+*.env filter=git-crypt diff=git-crypt
+
+# You can add more patterns here, for example:
+# *.key filter=git-crypt diff=git-crypt
+# secrets/** filter=git-crypt diff=git-crypt
