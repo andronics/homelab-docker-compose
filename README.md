@@ -91,7 +91,6 @@ This command starts the service in detached mode.
 * [Prowlarr](https://github.com/andronics/homelab-docker-compose/blob/main/prowlarr/compose.yml): Indexer Manager & Proxy For *ARR PVR Apps
 * [qBittorrent](https://github.com/andronics/homelab-docker-compose/blob/main/qbittorrent/compose.yml): BitTorrent Client
 * [Radarr](https://github.com/andronics/homelab-docker-compose/blob/main/radarr/compose.yml): Movie Collection Manager
-* [Rclone](https://github.com/andronics/homelab-docker-compose/blob/main/rclone/compose.yml): Cloud Storage Sync
 * [Readarr](https://github.com/andronics/homelab-docker-compose/blob/main/readarr/compose.yml): Book Collection Manager
 * [Recyclarr](https://github.com/andronics/homelab-docker-compose/blob/main/recyclarr/compose.yml): TRaSH Guides Sync For Sonarr & Radarr
 * [ROMM](https://github.com/andronics/homelab-docker-compose/blob/main/romm/compose.yml): ROM Library Manager
