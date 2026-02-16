@@ -1,0 +1,82 @@
+services:
+
+  app:
+    image: tvmaze-sync:latest
+    container_name: tvmaze-sync
+    configs:
+      - source: app_config
+        target: /config/config.yaml
+    environment:
+      SERVER_API_KEY_FILE: /run/secrets/server_api_key
+      SONARR_API_KEY_FILE: /run/secrets/sonarr_api_key
+      TVMAZE_API_KEY_FILE: /run/secrets/tvmaze_api_key
+    networks:
+      backend:
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    secrets:
+      - server_api_key
+      - sonarr_api_key
+      - tvmaze_api_key
+    volumes:
+      - app-config:/config
+      - app-data:/data
+
+networks:
+  backend:
+    external: true
+
+secrets:
+  server_api_key:
+    environment: SERVER_API_KEY
+  sonarr_api_key:
+    environment: SONARR_API_KEY
+  tvmaze_api_key:
+    environment: TVMAZE_API_KEY
+
+volumes:
+  app-config:
+    driver: local
+  app-data:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      dry_run: true
+      exclude:
+        # Exclude shows with these genres
+        genres:
+          - "Reality"
+          - "Talk Show"
+          - "Game Show"
+          - "News"
+          - "Sports"
+      logging:
+        level: "DEBUG"
+      selections:
+        - name: "Scripted British Comedies"
+          genres:
+            - "Comedy"
+          countries:
+            - "GB"
+          premiered:
+            after: "2000-01-01"
+          rating:
+            min: 5.0
+          types:
+            - "Scripted"
+      server:
+        api_key: ${SERVER_API_KEY}
+      sonarr:
+        url: http://sonarr:8989
+        api_key: ${SONARR_API_KEY}
+        root_folder: /mnt/media/tv
+        quality_profile: HD-1080p
+        tags: []
+      sync:
+        poll_interval: "60m"
+      tvmaze:
+        api_key: ${TVMAZE_API_KEY}
+        update_window: "day"

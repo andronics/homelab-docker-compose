@@ -1,0 +1,59 @@
+services:
+  app:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt
+    env_file:
+      - .env
+    environment:
+      - TZ=UTC
+    labels:
+      traefik.enable: true
+      traefik.http.routers.mqtt-ws.entrypoints: https-public
+      traefik.http.services.mqtt-ws.loadbalancer.passHostHeader: true
+      traefik.http.services.mqtt-ws.loadbalancer.server.port: 9001
+      traefik.tcp.routers.mqtt-broker.entrypoints: mqtt
+      traefik.tcp.routers.mqtt-broker.rule: HostSNI(`*`)
+      traefik.tcp.services.mqtt-broker.loadbalancer.server.port: 1883
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-config:/mosquitto/config
+      - app-data:/mosquitto/data
+      - app-log:/mosquitto/log
+
+  ui:
+    image: terdia07/mqttui:latest
+    container_name: mqtt-ui
+    env_file:
+      - .env
+    environment:
+      - MQTT_BROKER=mqtt
+      - TZ=UTC
+    labels:
+      traefik.enable: true
+      traefik.http.routers.mqtt-ui.entrypoints: https-public
+      traefik.http.routers.mqtt-ui.rule: Host(`mqtt-ui.andronics.io`)
+      traefik.http.services.mqtt-ui.loadbalancer.passHostHeader: true
+      traefik.http.services.mqtt-ui.loadbalancer.server.port: 5000
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-config:/mosquitto/config
+      - app-data:/mosquitto/data
+      - app-log:/mosquitto/log
+
+
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+  app-data:
+    driver: local
+  app-log:
+    driver: local

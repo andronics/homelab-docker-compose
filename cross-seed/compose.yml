@@ -1,0 +1,79 @@
+services:
+
+  app:
+    image: ghcr.io/cross-seed/cross-seed:latest
+    container_name: cross-seed
+    command: daemon
+    configs:
+      - source: config
+        target: /config/config.js
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    networks:
+      backend:
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+      - /mnt/transfer:/mnt/transfer
+
+networks:
+  backend:
+    external: true
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  config:
+    content: |
+      "use strict";
+      // https://www.cross-seed.org/docs/basics/options#torrentclients
+      module.exports = {
+        apiKey: undefined,
+        host: "0.0.0.0",
+        port: 2468,
+        // https://www.cross-seed.org/docs/tutorials/id-searching
+        torznab: [],
+        sonarr: [
+          "http://sonarr:8989/?apikey=875739e72461402cbbf8842b8b00ff27"
+        ],
+        radarr: [
+          "http://radarr:7878/?apikey=1f53552237404bf0a2a849758d1e857f"
+        ],
+        notificationWebhookUrls: [],
+        torrentClients: [
+          "qbittorrent:http://andronics:P0pularation@qbittorrent:8080"
+        ],
+        useClientTorrents: true,
+        delay: 30,
+        dataDirs: [],
+        linkCategory: "cross-seed-link",
+        linkDirs: [
+          "/mnt/transfer"
+        ],
+        linkType: "hardlink",
+        flatLinking: false,
+        matchMode: "flexible",
+        skipRecheck: true,
+        autoResumeMaxDownload: 52428800,
+        ignoreNonRelevantFilesToResume: false,
+        maxDataDepth: 2,
+        torrentDir: null,
+        outputDir: null,
+        includeSingleEpisodes: false,
+        includeNonVideos: false,
+        seasonFromEpisodes: 1,
+        fuzzySizeThreshold: 0.02,
+        excludeOlder: "2 weeks",
+        excludeRecentSearch: "3 days",
+        action: "inject",
+        duplicateCategories: false,
+        rssCadence: "30 minutes",
+        searchCadence: "1 day",
+        snatchTimeout: "30 seconds",
+        searchTimeout: "2 minutes",
+        searchLimit: 400,
+        blockList: [],
+      };

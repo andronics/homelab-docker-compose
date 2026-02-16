@@ -1,0 +1,74 @@
+services:
+
+
+
+  app:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    env_file:
+      - .env
+    environment:
+      ENABLE_LOGIN_FORM: false
+      ENABLE_OAUTH_SIGNUP: true
+      OAUTH_CLIENT_ID: eUcPpEgWtv9ZLJFsuIaLrUgafiMaOa2WUb3ZN1dh
+      OAUTH_CLIENT_SECRET: wnyin0qEzVto8LdABt3uhGQRj81gIJ0KLs2kZ1p3bmGJ7RfSgyj30Shtk5ppx2CCLaVyjhh2b4SNw44NqSyLEqHog436UE0bCwhHW2A3M4QtnEEomtwOsggDMrMa8bBO
+      OAUTH_MERGE_ACCOUNTS_BY_EMAIL: true
+      OAUTH_PROVIDER_NAME: authentik
+      OLLAMA_BASE_URL: http://openwebui-models:11434
+      OPENID_PROVIDER_URL: https://sso.andronics.io/application/o/open-web-ui/.well-known/openid-configuration
+      OPENID_REDIRECT_URI: https://openwebui.andronics.io/oauth/oidc/callback
+      TZ: Europe/London
+      WEBUI_URL: https://openwebui.andronics.io
+    labels:
+      traefik.enable: true
+      traefik.http.routers.openwebui.entrypoints: https-public
+      traefik.http.services.openwebui.loadbalancer.passHostHeader: true
+      traefik.http.services.openwebui.loadbalancer.server.port: 8080
+    networks:
+      - backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - app-data:/app/backend/data
+
+  models:
+    image: ollama/ollama
+    container_name: openwebui-models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    env_file:
+      - .env
+    environment:
+      OLLAMA_ORIGINS: "*"
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.ollama.entrypoints: https-public
+      traefik.http.routers.ollama.rule: Host(`ollama.andronics.io`)
+      traefik.http.services.ollama.loadbalancer.passHostHeader: true
+      traefik.http.services.ollama.loadbalancer.server.port: 11434
+    networks:
+      - backend
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - models-data:/root/.ollama
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-data:
+    driver: local
+  models-data:
+    driver: local

@@ -1,0 +1,86 @@
+services:
+  app:
+    container_name: baserow
+    image: baserow/baserow:${BASEROW_VERSION:-2.0.6}
+    configs:
+      - source: app_cert
+        target: /baserow/premium/backend/src/baserow_premium/public_key.pem
+        uid: '9999'
+        gid: '9999'
+      - source: app_cert
+        target: /baserow/premium/backend/src/baserow_premium/public_key_debug.pem
+        uid: '9999'
+        gid: '9999'
+    environment:
+      BASEROW_PUBLIC_URL: 'https://baserow.andronics.io'
+      DEBUG: True
+      TZ: Europe/London
+      RUN_MAIN: "1"
+    extra_hosts:
+      - "api.baserow.io:127.0.0.1"
+    labels:
+      traefik.enable: true
+      traefik.http.routers.baserow.entrypoints: https-public
+      traefik.http.services.baserow.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-data:/baserow/data
+
+  baserow-saas-backend:
+    container_name: baserow-saas-backend
+    image: python:3.11-slim
+    configs:
+      - source: license_server
+        target: /app/main.py
+    command: >
+      sh -c "pip install flask && python /app/main.py"
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-data:
+
+configs:
+  app_cert:
+    content: |
+      -----BEGIN PUBLIC KEY-----
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr08vGY6o9dW8HE7w4PSC
+      evbxVPE1MxrmbxCHEyef14QX2BujU83jbeqe/8OggjDWfzJbrSjnJFcqJAQ+GeZA
+      WWh9i0j/LcTrgJfIYV4h1FPBKpo/Tjr2w1G/SU5GpVJRiMfo4wRRnJ/Y5k7eJC/X
+      yxN+rnc6yELVXz53kmlJM6/nJwOP9eU+Cs9iV827GBcnnBHI/fBBsfFPsmUkYYZF
+      g/c6JE5pNhtX8IsgoRkkF+53sg1pPcpyS9DCbaUofMkXKHj1Ytmn/C0YHC1NKwZJ
+      ULHGoJdauytY71gj+HpADgu6Du+MvWOnb5t4lMlAVcNPMfANiTQM1awnsoxww6ii
+      YwIDAQAB
+      -----END PUBLIC KEY-----
+  license_server:
+    content: |
+        from flask import Flask, request, jsonify
+
+        def create_app():
+            app = Flask(__name__)
+
+            @app.route('/api/saas/licenses/check/', methods=['POST'])
+            def check_license():
+                data = request.json or {}
+                response = {}
+                for license_payload in data.get('licenses', []):
+                    response[license_payload] = {"type": "ok", "detail": ""}
+                return jsonify(response)
+
+            @app.route('/health', methods=['GET'])
+            def health():
+                return jsonify({"status": "healthy"})
+
+            return app
+
+        app = create_app()
+
+        if __name__ == '__main__':
+            app.run(host='0.0.0.0', port=8000)

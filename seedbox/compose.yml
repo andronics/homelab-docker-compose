@@ -1,0 +1,103 @@
+services:
+
+  app:
+    image: lscr.io/linuxserver/rutorrent:latest
+    container_name: seedbox
+    configs:
+      - source: app_rtorrent_config
+        target: /config/rtorrent/wrong-rtorrent.rc
+      - source: app_rutorrent_config
+        target: /config/rutorrent/conf/config.php
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.seedbox.entrypoints: https-public
+      traefik.http.services.seedbox.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-data:/config
+      - /mnt/transfer/:/mnt/transfer
+
+  auth:
+    image: ghcr.io/goauthentik/proxy
+    container_name: seadbox-auth
+    environment:
+      AUTHENTIK_HOST: ${READARR_AUTHENTIK_HOST}
+      AUTHENTIK_HOST_BROWSER: ${READARR_AUTHENTIK_HOST_BROWSER}
+      AUTHENTIK_INSECURE: ${READARR_AUTHENTIK_INSECURE}
+      AUTHENTIK_TOKEN: ${READARR_AUTHENTIK_TOKEN}
+
+    networks:
+      backend:
+    restart: unless-stopped
+
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-data:
+    driver: local
+
+configs:
+  app_rtorrent_config:
+    content: |
+      # rutorrent
+      execute2 = {sh,-c,/usr/bin/php7 /app/rutorrent/php/initplugins.php abc &}
+      execute.nothrow = rm,/run/php/.rtorrent.sock
+      network.scgi.open_local = /run/php/.rtorrent.sock
+      schedule2 = socket_chmod,0,0,"execute=chmod,0660,/run/php/.rtorrent.sock"
+      schedule2 = socket_chgrp,0,0,"execute=chgrp,abc,/run/php/.rtorrent.sock"
+
+      # logging
+      log.open_file = "rtorrent", /config/log/rtorrent/rtorrent.log
+      log.add_output = "info", "rtorrent"
+
+      # throttle
+      throttle.min_peers.normal.set = 40
+      throttle.max_peers.normal.set = 1200
+      throttle.max_uploads.global.set = 300
+
+      # directories
+      directory.default.set = /mnt/transfer/seedbox/completed  # Default completed directory
+      session.path.set = /mnt/transfer/seedbox/session  # Session path for rtorrent
+      directory.torrent.set = /mnt/transfer/seedbox/watch  # Watch directory for new torrents
+      session.path.set = /mnt/transfer/seedbox/session  # Session path for rtorrent
+      schedule2 = watch_directory, 10, 10, "load.start=/mnt/transfer/seedbox/watch/*.torrent"
+
+
+      # network
+      network.port_range.set = 51413-51413
+      protocol.encryption.set = require     # Force encryption
+      dht.mode.set = disable                # Disable DHT (private trackers)
+      protocol.pex.set = no                 # Disable PEX
+
+      # performance
+      upload_slots.set = 8                  # 8-12 optimal for home seedbox
+      max_uploads.set = 100                 # Allow many connections
+      min_peers.set = 40
+      max_peers.set = 200
+      send_buffer.size.set = 16M          # Buffer tuning
+      receive_buffer.size.set = 16M
+
+      # seeding strategy
+      ratio.enable.set = yes
+      ratio.min.set = 5.0                 # Stop seeding at 5.0 ratio
+      system.file.allocate.set = yes      # Pre-allocate disk space
+
+
+  app_rutorrent_config:
+    content: |
+      <?php
+        $cfg['saveUploadedTorrents'] = true;     // Keep .torrent files
+        $cfg['topDirectory'] = '/mnt/transfer/seedbox';     // Default save path
+        $cfg['forbidUserSettings'] = false;      // Allow UI customizations
+        $cfg['enableMoveFinished'] = true;       // Enable auto-moving
+        $cfg['defaultTheme'] = 'Dark';       // Enable auto-moving
+      ?>

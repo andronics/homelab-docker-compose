@@ -1,0 +1,27 @@
+services:
+
+  app:
+    image: checkmk/check-mk-raw:2.4.0-latest
+    container_name: checkmk
+    environment:
+      CMK_PASSWORD: ${CMK_PASSWORD:-super_secret_cmk_password}
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.checkmk.entrypoints: https-public
+      traefik.http.services.checkmk.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+    restart: unless-stopped
+    tmpfs:
+      - /opt/omd/sites/cmk/tmp:uid=1000,gid=1000
+    volumes:
+      - sites:/omd/sites
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  sites:
+    driver: local

@@ -1,0 +1,28 @@
+services:
+
+  app:
+    image: ghcr.io/tarampampam/error-pages:3
+    container_name: error-pages
+    environment:
+      TEMPLATE_NAME: ghost
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.error-pages.entrypoints: https-public
+      traefik.http.routers.error-pages.rule: HostRegexp(`.*`)
+      traefik.http.routers.error-pages.middlewares: error-pages
+      traefik.http.routers.error-pages.priority: 10
+      traefik.http.middlewares.error-pages.errors.status: "404-599"
+      traefik.http.middlewares.error-pages.errors.service: error-pages
+      traefik.http.middlewares.error-pages.errors.query: /{status}.html
+      traefik.http.services.error-pages.loadbalancer.passHostHeader: true
+      traefik.http.services.error-pages.loadbalancer.server.port: "8080"
+    networks:
+      - backend
+    restart: unless-stopped
+
+
+networks:
+  backend:
+    external: true
+

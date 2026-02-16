@@ -1,0 +1,82 @@
+services:
+
+  app:
+    container_name: n8n
+    build:
+      context: .
+    depends_on:
+      - db
+      - queue
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_DATABASE: ${N8N_POSTGRES_DATABASE:-n8n}
+      DB_POSTGRESDB_HOST: ${N8N_POSTGRES_HOST:-"n8n-db"}
+      DB_POSTGRESDB_PASSWORD: ${N8N_POSTGRES_PASSWORD:-super_secret_n8n_password}
+      DB_POSTGRESDB_PORT: ${N8N_POSTGRES_PORT:-5432}
+      DB_POSTGRESDB_USER: ${N8N_POSTGRES_USER:-n8n}
+      GENERIC_TIMEZONE: ${N8N_TIMEZONE:-Europe/London}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-"super_secret_encryption_key"}
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL:-""}
+      N8N_LICENSE_ACTIVATION_KEY: ${N8N_LICENSE_ACTIVATION_KEY:-""}
+      N8N_PROTOCOL: ${N8N_PROTOCOL:-https}
+      N8N_REINSTALL_MISSING_PACKAGES: true
+      N8N_RUNNERS_ENABLED: false
+      NODE_FUNCTION_ALLOW_EXTERNAL: "*"
+      QUEUE_BULL_REDIS_HOST: ${N8N_QUEUE_BULL_REDIS_HOST:-"n8n-queue"}
+      QUEUE_HEALTH_CHECK_ACTIVE: ${N8N_QUEUE_HEALTH_CHECK_ACTIVE:-true}
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL:-""}
+      TZ: ${N8N_TIMEZONE:-Europe/London}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.n8n.entrypoints: https-public
+      traefik.http.services.n8n.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-data:/home/node/.n8n
+
+  db:
+    image: postgres:17-trixie
+    container_name: n8n-db
+    environment:
+      POSTGRES_DB: "${N8N_POSTGRES_DATABASE:-n8n}"
+      POSTGRES_PASSWORD: "${N8N_POSTGRES_PASSWORD:-super_secret_n8n_password}"
+      POSTGRES_USER: "${N8N_POSTGRES_USER:-n8n}"
+      TZ: ${N8N_TIMEZONE:-Europe/London}
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test: "pg_isready -U ${N8N_POSTGRES_USER:-n8n} -d ${N8N_POSTGRES_DATABASE:-n8n}"
+      timeout: 2s
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  queue:
+    image: redis:latest
+    container_name: n8n-queue
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 1s
+      timeout: 3s
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - queue-data:/data
+
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-data:
+    driver: local
+  db-data:
+    driver: local
+  queue-data:
+    driver: local

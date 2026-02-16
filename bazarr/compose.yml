@@ -1,0 +1,198 @@
+services:
+
+  app:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    # configs:
+    #   - source: app_config
+    #     target: /config/config/config.yaml
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.bazarr.entrypoints: https-public
+      traefik.http.services.bazarr.loadbalancer.passHostHeader: true
+      traefik.http.services.bazarr.loadbalancer.server.url: http://authentik:9000
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+      - /mnt/media:/mnt/media
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      ---
+      auth:
+        apikey: ${BAZARR_AUTH_API_KEY:-super_secret_auth_api_key}
+        password: '${BAZARR_AUTH_PASSWORD:-super_secret_auth_password}'
+        type: Basic
+        username: '${BAZARR_AUTH_USERNAME:-super_secret_auth_username}'
+      backup:
+        day: 6
+        folder: /config/backup
+        frequency: Weekly
+        hour: 3
+        retention: 31
+      general:
+        adaptive_searching: true
+        adaptive_searching_delay: 1w
+        adaptive_searching_delta: 1w
+        auto_update: true
+        branch: master
+        chmod: '0640'
+        chmod_enabled: false
+        days_to_upgrade_subs:
+        debug: false
+        default_und_audio_lang: ''
+        default_und_embedded_subtitles_lang: ''
+        dont_notify_manual_actions: false
+        embedded_subs_show_desired: true
+        embedded_subtitles_parser: ffprobe
+        enabled_integrations: []
+        enabled_providers:
+        - subdl
+        - opensubtitlescom
+        - yifysubtitles
+        - tvsubtitles
+        - supersubtitles
+        - podnapisi
+        - opensubtitles
+        flask_secret_key: ${FLASK_SECRET_KEY:-super_secret_flask_secret_key}
+        hi_extension: hi
+        ignore_ass_subs: false
+        ignore_pgs_subs: false
+        ignore_vobsub_subs: false
+        ip: '*'
+        language_equals:
+        - eng:eng
+        minimum_score: 90
+        minimum_score_movie: 70
+        movie_default_enabled: true
+        movie_default_profile: 1
+        movie_tag_enabled: false
+        multithreading: true
+        page_size: 25
+        parse_embedded_audio_track: false
+        path_mappings: []
+        path_mappings_movie: []
+        port: 6767
+        postprocessing_cmd: ''
+        postprocessing_threshold: 90
+        postprocessing_threshold_movie: 70
+        remove_profile_tags: []
+        serie_default_enabled: true
+        serie_default_profile: 1
+        serie_tag_enabled: false
+        single_language: false
+        skip_hashing: false
+        subfolder: current
+        subfolder_custom: ''
+        subzero_mods: fix_uppercase,common,OCR_fixes,remove_tags
+        theme: auto
+        upgrade_frequency: 12
+        upgrade_manual: true
+        upgrade_subs: true
+        use_embedded_subs: false
+        use_postprocessing: false
+        use_postprocessing_threshold: false
+        use_postprocessing_threshold_movie: false
+        use_radarr: true
+        use_scenename: true
+        use_sonarr: true
+        utf8_encode: true
+        wanted_search_frequency: 6
+        wanted_search_frequency_movie: 6
+      log:
+        exclude_filter: ''
+        ignore_case: false
+        include_filter: ''
+        use_regex: false
+      movie_scores:
+        audio_codec: 3
+        edition: 1
+        hash: 119
+        hearing_impaired: 1
+        release_group: 13
+        resolution: 2
+        source: 7
+        streaming_service: 1
+        title: 60
+        video_codec: 2
+        year: 30
+      opensubtitles:
+        password: ${OPEN_SUBTITLES_ORG_PASSWORD:-super_secret_open_subtitles_org_password}
+        skip_wrong_fps: false
+        ssl: false
+        timeout: 15
+        use_tag_search: false
+        username: ${OPEN_SUBTITLES_ORG_USERNAME:-super_secret_open_subtitles_org_username}
+        vip: false
+      opensubtitlescom:
+        include_ai_translated: true
+        password:  ${OPEN_SUBTITLES_COM_PASSWORD:-super_secret_open_subtitles_com_password}
+        use_hash: false
+        username: ${OPEN_SUBTITLES_COM_USERNAME:-super_secret_open_subtitles_com_username}
+      radarr:
+        apikey: ${RADARR_API_KEY:-super_secret_api_key}
+        base_url: ''
+        defer_search_signalr: false
+        excluded_tags: []
+        full_update: Daily
+        full_update_day: 6
+        full_update_hour: 4
+        http_timeout: 60
+        ip: radarr
+        movies_sync: 60
+        only_monitored: false
+        port: 7878
+        ssl: false
+        sync_only_monitored_movies: false
+        use_ffprobe_cache: true
+      series_scores:
+        audio_codec: 3
+        episode: 30
+        hash: 359
+        hearing_impaired: 1
+        release_group: 14
+        resolution: 2
+        season: 30
+        series: 180
+        source: 7
+        streaming_service: 1
+        video_codec: 2
+        year: 90
+      sonarr:
+        apikey: ${SONARR_API_KEY:-super_secret_api_key}
+        base_url: ''
+        defer_search_signalr: false
+        exclude_season_zero: false
+        excluded_series_types: []
+        excluded_tags: []
+        full_update: Daily
+        full_update_day: 6
+        full_update_hour: 4
+        http_timeout: 60
+        ip: sonarr
+        only_monitored: false
+        port: 8989
+        series_sync: 60
+        ssl: false
+        sync_only_monitored_episodes: false
+        sync_only_monitored_series: false
+        use_ffprobe_cache: true
+      subdl:
+        api_key: ${SUBDL_API_KEY:-super_secret_subdl_api_key}
+
+

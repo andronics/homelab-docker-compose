@@ -1,0 +1,65 @@
+services:
+
+  app:
+    image: ghcr.io/booklore-app/booklore:latest
+    container_name: booklore
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: jdbc:mariadb://${BOOKLORE_MARIADB_HOST:-db}:${BOOKLORE_MARIADB_PORT:-3306}/${BOOKLORE_MARIADB_DATABASE:-booklore}
+      DATABASE_USERNAME: ${BOOKLORE_MARIADB_USERNAME:-super_secret_username}
+      DATABASE_PASSWORD: ${BOOKLORE_MARIADB_PASSWORD:-super_secret_password}
+      GROUP_ID: 0
+      SWAGGER_ENABLED: true
+      USER_ID: 0
+      TZ: ${BOOKLORE_TIMEZONE:-Europe/London}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.booklore.entrypoints: https-public
+      traefik.http.services.booklore.loadbalancer.passHostHeader: true
+      traefik.http.services.booklore.loadbalancer.server.port: 6060
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-bookdrop:/bookdrop
+      - app-data:/app/data
+      - /mnt/media:/mnt/media
+
+  db:
+    image: mariadb:latest
+    container_name: booklore-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${BOOKLORE_MARIADB_ROOT_PASSWORD:-super_secret_password}
+      MYSQL_DATABASE: ${BOOKLORE_MARIADB_DATABASE:-booklore}
+      MYSQL_USER: ${BOOKLORE_MARIADB_USERNAME:-super_secret_username}
+      MYSQL_PASSWORD: ${BOOKLORE_MARIADB_PASSWORD:-super_secret_password}
+      TZ: Etc/UTC
+    healthcheck:
+      test:  ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - db-config:/config
+      - db-data:/var/lib/mysql
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-bookdrop:
+    driver: local
+  app-data:
+    driver: local
+  db-config:
+    driver: local
+  db-data:
+    driver: local

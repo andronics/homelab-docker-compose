@@ -1,0 +1,45 @@
+
+services:
+
+  app:
+    image: ghcr.io/lukegus/termix:latest
+    container_name: termix
+    configs:
+      - source: app_config
+        target: /config/config.xml
+    environment:
+      PORT: ${TERMIX_PORT:-8080}
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.termix.entrypoints: https-public
+      traefik.http.routers.termix.middlewares: termix@docker
+      traefik.http.middlewares.termix.headers.customrequestheaders.Connection: Upgrade
+      traefik.http.middlewares.termix.headers.customrequestheaders.Upgrade: websocket
+      traefik.http.services.termix.loadbalancer.passHostHeader: true
+      # traefik.http.services.termix.loadbalancer.server.port: ${TERMIX_PORT:-8080}
+      # traefik.http.services.termix.loadbalancer.server.url: http://authentik:9000
+    networks:
+      backend:
+    restart: unless-stopped
+    volumes:
+      - app-data:/app/data
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-data:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      <Config>
+        <ApiKey>${SONARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${SONARR_PORT:-8989}</Port>
+        <LogLevel>${SONARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>Basic</AuthenticationMethod>
+        <AuthenticationRequired>Enabled</AuthenticationRequired>
+      </Config>

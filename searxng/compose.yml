@@ -1,0 +1,44 @@
+services:
+
+  app:
+    image: searxng/searxng:latest
+    container_name: searxng
+    configs:
+      - source: app_settings
+        target: /etc/searxng/settings.yml
+    environment:
+      SEARXNG_BASE_URL: https://${SEARXNG_HOSTNAME}/
+      UWSGI_WORKERS: ${SEARXNG_UWSGI_WORKERS:-4}
+      UWSGI_THREADS: ${SEARXNG_UWSGI_THREADS:-4}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.searxng.entrypoints: https-public
+      traefik.http.routers.searxng.rule: Host(`${SEARXNG_HOSTNAME}`) || Header(`X-Forwarded-Host`, `${SEARXNG_HOSTNAME}`)
+      traefik.http.services.searxng.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-data:/etc/searxng
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-data:
+    driver: local
+
+configs:
+  app_settings:
+    content: |
+      # https://docs.searxng.org/admin/settings/settings.html
+      use_default_settings: true
+      server:
+        secret_key: ${SEARXNG_SECRET_KEY:-super_secret_key}
+      search:
+        formats:
+          - csv
+          - html
+          - json
+          - rss

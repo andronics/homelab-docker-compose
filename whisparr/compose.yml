@@ -1,0 +1,69 @@
+services:
+
+  app:
+    image: hotio/whisparr:latest
+    container_name: whisparr
+    # configs:
+    #   - source: app_config
+    #     target: /config/config.xml
+    #     mode: 0666
+    environment:
+      AUTO_UPDATE: true
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    networks:
+      backend:
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+      - /mnt/media:/mnt/media
+      - /mnt/transfer:/mnt/transfer
+
+  auth:
+    image: ghcr.io/goauthentik/proxy
+    container_name: whisparr_auth
+    environment:
+      AUTHENTIK_HOST: ${WHISPARR_AUTHENTIK_HOST}
+      AUTHENTIK_HOST_BROWSER: ${WHISPARR_AUTHENTIK_HOST_BROWSER}
+      AUTHENTIK_INSECURE: ${WHISPARR_AUTHENTIK_INSECURE}
+      AUTHENTIK_TOKEN: ${WHISPARR_AUTHENTIK_TOKEN}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.whisparr.entrypoints: https-public
+      traefik.http.services.whisparr.loadbalancer.passHostHeader: true
+    networks:
+      backend:
+    restart: unless-stopped
+
+  # metrics:
+  #   image: ghcr.io/onedr0p/exportarr:v1.6.0
+  #   container_name: whisparr_metrics
+  #   command: ["whisparr"]
+  #   environment:
+  #     APIKEY: ${WHISPARR_API_KEY:-super_secret_api_key}
+  #     PORT: 9990
+  #     URL: "http://whisparr:${WHISPARR_PORT:-6969}"
+  #   networks:
+  #     - backend
+  #   restart: unless-stopped
+
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      <Config>
+        <ApiKey>${WHISPARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${WHISPARR_PORT:-6969}</Port>
+        <LogLevel>${WHISPARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>Basic</AuthenticationMethod>
+        <AuthenticationRequired>Enabled</AuthenticationRequired>
+      </Config>

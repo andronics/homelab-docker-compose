@@ -1,0 +1,183 @@
+services:
+
+  app:
+    image: ghcr.io/rommapp/romm:latest
+    container_name: romm
+    configs:
+      - source: app_config
+        target: /romm/config/config.yml
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    env_file:
+      - .env
+    environment:
+      LOGLEVEL: DEBUG
+      DB_HOST: db
+      DB_NAME: ${ROMM_DB_NAME:-romm}
+      DB_USER: ${ROMM_DB_USER:-super_secret_user}
+      DB_PASSWD: ${ROMM_DB_PASSWORD:-super_secret_password}
+      IGDB_CLIENT_ID: ${ROMM_IGDB_CLIENT_ID:-super_client_id}
+      IGDB_CLIENT_SECRET: ${ROMM_IGDB_CLIENT_SECRET:-super_client_secret}
+      HASHEOUS_API_ENABLED: true
+      LAUNCHBOX_API_ENABLED: true
+      OIDC_ENABLED: true
+      OIDC_PROVIDER: authentik
+      OIDC_CLIENT_ID: ${ROMM_OIDC_CLIENT_ID:-super_secret_client_id}
+      OIDC_CLIENT_SECRET: ${ROMM_OIDC_CLIENT_SECRET:-super_secret_client_secret}
+      OIDC_REDIRECT_URI: https://romm.andronics.io/api/oauth/openid
+      OIDC_SERVER_APPLICATION_URL: https://sso.andronics.io/application/o/romm
+      PLAYMATCH_API_ENABLED: true
+      RETROACHIEVEMENTS_API_KEY: ${ROMM_RETROACHIEVEMENTS_API_KEY:-super_api_key}
+      SCREENSCRAPER_USER: ${ROMM_SCREENSCRAPER_USER:-super_secret_user}
+      SCREENSCRAPER_PASSWORD: ${ROMM_SCREENSCRAPER_PASSWORD:-super_secret_password}
+      STEAMGRIDDB_API_KEY: ${ROMM_STEAMGRIDDB_API_KEY:-super_api_key}
+      ROMM_AUTH_SECRET_KEY: ${ROMM_AUTH_SECRET_KEY:-super_secret_key}
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.romm.entrypoints: https-public
+      traefik.http.services.romm.loadbalancer.passHostHeader: true
+      traefik.http.services.romm.loadbalancer.server.port: 8080
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-assets:/romm/assets
+      - app-config:/romm/config
+      - /mnt/media/roms:/romm/library/roms
+
+  db:
+    image: mariadb:latest
+    container_name: romm-db
+    env_file:
+      - .env
+    environment:
+      MARIADB_ROOT_PASSWORD: ${ROMM_DB_ROOT_PASSWORD:-super_secret_password}
+      MARIADB_DATABASE: ${ROMM_DB_NAME:-romm}
+      MARIADB_USER: ${ROMM_DB_USER:-super_secret_user}
+      MARIADB_PASSWORD: ${ROMM_DB_PASSWORD:-super_secret_password}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/mysql
+
+
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-assets:
+  app-config:
+  db-data:
+
+configs:
+  app_config:
+    content: |
+      # https://raw.githubusercontent.com/rommapp/romm/refs/heads/master/examples/config.example.yml
+      exclude:
+        platforms: []
+        roms:
+          single_file:
+            extensions: []
+            names: []
+          multi_file:
+            names: []
+            parts:
+              names: []
+              extensions: []
+      system:
+        platforms: {}
+        versions: {} # { naomi: 'arcade' }
+
+      # The folder name where your roms are located
+      filesystem: {}
+
+      # scan:
+      #   # Metadata priority during scans
+      #   priority:
+      #     # Below are the default priority values used
+      #     metadata: # Top-level metadata source priority
+      #       - "igdb" # IGDB (highest priority)
+      #       - "moby" # MobyGames
+      #       - "ss" # Screenscraper
+      #       - "ra" # RetroAchievements
+      #       - "launchbox" # Launchbox
+      #       - "gamelist" # ES-DE gamelist.xml
+      #       - "hasheous" # Hasheous
+      #       - "flashpoint" # Flashpoint Project
+      #       - "hltb" # HowLongToBeat (lowest priority)
+      #     artwork: # Cover art and screenshots
+      #       - "igdb" # IGDB
+      #       - "moby" # MobyGames
+      #       - "ss" # Screenscraper
+      #       - "ra" # RetroAchievements
+      #       - "launchbox" # Launchbox
+      #       - "gamelist" # ES-DE gamelist.xml
+      #       - "hasheous" # Hasheous
+      #       - "flashpoint" # Flashpoint Project
+      #       - "hltb" # HowLongToBeat
+      #     region: # Used by IGDB and ScreenScraper for regional variants
+      #       - "us"
+      #       - "wor"
+      #       - "ss"
+      #       - "eu"
+      #       - "jp"
+      #     language: # Used by ScreenScraper for descriptions
+      #       - "en"
+      #       - "fr"
+      #     # Media assets to download
+      #     # Only used by Screenscraper and ES-DE gamelist.xml
+      #   media:
+      #     # Used as alternative cover art
+      #     - box2d  # Normal cover art (always enabled)
+      #     - box3d  # 3D box art
+      #     - miximage  # Mixed image of multiple media
+      #     - physical  # Disc, cartridge, etc.
+      #     # Added to the screenshots carousel
+      #     - screenshot  # Screenshot (enabled by default)
+      #     - title_screen  # Title screen
+      #     - fanart  # User uploaded artwork
+      #     # Bezel displayed around the emulatorjs window
+      #     - bezel
+      #     # Manual in PDF format
+      #     - manual # Manual (enabled by default)
+      #     # Gameplay video
+      #     - video  # Video (warning: large file size)
+      #     # Media used for batocera gamelist.xml export
+      #     - box2d_back  # Back cover art
+      #     - logo  # Transparent logo
+      #     # Other media assets (might be used in the future)
+      #     - marquee  # Custom marquee
+
+      # EmulatorJS per-core options
+      # emulatorjs:
+      #   debug: true # Available options will be logged to the browser console
+      #   cache_limit: null # Cache limit per ROM (in bytes)
+      #   settings:
+      #     parallel_n64: # Use the exact core name
+      #       vsync: disabled
+      #     snes9x:
+      #       snes9x_region: ntsc
+      #     default: # These settings apply to all cores
+      #       fps: show
+      #   controls: # https://emulatorjs.org/docs4devs/control-mapping/
+      #     snes9x:
+      #       0: # Player 1
+      #         0: # A MAPPING FOR EACH BUTTON MUST BE SET!
+      #           value: x # Mapping for keyboard
+      #           value2: BUTTON_2 # Mapping for connected controller
+      #       1: # Player 2
+      #       2: # Player 3
+      #       3: # Player 4

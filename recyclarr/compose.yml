@@ -1,0 +1,43 @@
+services:
+
+  app:
+    image: ghcr.io/recyclarr/recyclarr:latest
+    container_name: recyclarr
+    configs:
+      - source: app_config
+        target: /config/recyclarr.yml
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      sonarr:
+        tv:
+          base_url: http://sonarr:8989
+          api_key: 875739e72461402cbbf8842b8b00ff27
+          delete_old_custom_formats: true
+          quality_definition:
+            type: series
+      radarr:
+        movies:
+          base_url: http://radarr:7878
+          api_key: 1f53552237404bf0a2a849758d1e857f
+          delete_old_custom_formats: true
+          quality_definition:
+            type: movie

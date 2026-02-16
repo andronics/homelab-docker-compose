@@ -1,0 +1,40 @@
+
+services:
+
+  app:
+    image: quay.io/nuclio/dashboard:stable-amd64
+    container_name: nuclio
+    environment:
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.nuclio.entrypoints: https-public
+      traefik.http.services.nuclio.loadbalancer.passHostHeader: true
+      traefik.http.services.nuclio.loadbalancer.server.port: ${NUCLIO_PORT:-8070}
+    networks:
+      backend:
+    ports:
+      - ${NUCLIO_PORT:-8070}:${NUCLIO_PORT:-8070}
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      <Config>
+        <ApiKey>${nuclio_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${nuclio_PORT:-8989}</Port>
+        <LogLevel>${nuclio_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>Basic</AuthenticationMethod>
+        <AuthenticationRequired>Enabled</AuthenticationRequired>
+      </Config>
