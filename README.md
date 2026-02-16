@@ -66,36 +66,49 @@ This command starts the service in detached mode.
 
 ## Available Services
 
-* [Audiobookshelf](https://github.com/andronics/homelab-docker-compose/blob/main/audiobookshelf/docker-compose.yml): Audiobook & Podcast Server
-* [Authelia](https://github.com/andronics/homelab-docker-compose/blob/main/authelia/docker-compose.yml): Single Sign-On Multi-Factor Portal For Web Apps
-* [Calibre](https://github.com/andronics/homelab-docker-compose/blob/main/calibre/docker-compose.yml):  Powerful eBook Manager
-* [CloudflareDNS](https://github.com/andronics/homelab-docker-compose/blob/main/cloudflaredns/docker-compose.yml): Manages Cloudflare DNS Based On Current Public IP
-* [Code](https://github.com/andronics/homelab-docker-compose/blob/main/code/docker-compose.yml): VS Code in the browser
-* [Crowdsec](https://github.com/andronics/homelab-docker-compose/blob/main/crowdsec/docker-compose.yml): Curated Threat Intelligence Powered by the Crowd
-* [Deluge](https://github.com/andronics/homelab-docker-compose/blob/main/deluge/docker-compose.yml): Lightweight BitTorrent Client
-* [Emby](https://github.com/andronics/homelab-docker-compose/blob/main/emby/docker-compose.yml): Media Server That Streams Audio & Video To Various Devices
-* [Flaresolverr](https://github.com/andronics/homelab-docker-compose/blob/main/flaresolverr/docker-compose.yml): Proxy Server To Bypass Cloudflare Protection
-* [Homer](https://github.com/andronics/homelab-docker-compose/blob/main/homer/docker-compose.yml): Full Static HTML / JS Dashboard
-* [Immich](https://github.com/andronics/homelab-docker-compose/blob/main/immich/docker-compose.yml): Photo & Video Management Solution
-* [kavita](https://github.com/andronics/homelab-docker-compose/blob/main/kavita/docker-compose.yml): Multi Format Digital Library
-* [Lidarr](https://github.com/andronics/homelab-docker-compose/blob/main/lidarr/docker-compose.yml): Music Collection Manager for Usenet and BitTorrent
-* [Metube](https://github.com/andronics/homelab-docker-compose/blob/main/metube/docker-compose.yml): YouTube-DL Web Interface
-* [Navidrome](https://github.com/andronics/homelab-docker-compose/blob/main/navidrome/docker-compose.yml): Your Music Collection From Anywhere
-* [Ntfy](https://github.com/andronics/homelab-docker-compose/blob/main/ntfy/docker-compose.yml): Send Push Notifications To Your Phone via PUT/POST
-* [NordVPN](https://github.com/andronics/homelab-docker-compose/blob/main/nordvpn/docker-compose.yml): Lightweigth BitTorrent Client
-* [PiHole](https://github.com/andronics/homelab-docker-compose/blob/main/pihole/docker-compose.yml): Network-wide Ad Blocking
-* [Portainer](https://github.com/andronics/homelab-docker-compose/blob/main/portainer/docker-compose.yml): Container Management
-* [Prowlarr](https://github.com/andronics/homelab-docker-compose/blob/main/prowlarr/docker-compose.yml): Indexer Manager & Proxy for *ARR PVR Apps
-* [Radarr](https://github.com/andronics/homelab-docker-compose/blob/main/radarr/docker-compose.yml): Movie Collection Manager
-* [Readarr](https://github.com/andronics/homelab-docker-compose/blob/main/readarr/docker-compose.yml): Book Collection Manager
-* [Sonarr](https://github.com/andronics/homelab-docker-compose/blob/main/sonarr/docker-compose.yml): Television Collection Manager
-* [Tdarr](https://github.com/andronics/homelab-docker-compose/blob/main/tdarr/docker-compose.yml): Distributed Transcoding System
-* [Tor](https://github.com/andronics/homelab-docker-compose/blob/main/tor/docker-compose.yml): Overlay Network Enabling Anonymous Communication
-* [Traefik](https://github.com/andronics/homelab-docker-compose/blob/main/traefik/docker-compose.yml): Cloud Native Application Proxy
-* [Trakarr](https://github.com/andronics/homelab-docker-compose/blob/main/trakarr/docker-compose.yml): Trakt Monitoring Daemon That Adds New TV Series & Movies
-* [Unpackerr](https://github.com/andronics/homelab-docker-compose/blob/main/unpackerr/docker-compose.yml): Monitors Downloads And Automatically Extracts Archives
-* [Vaultwarden](https://github.com/andronics/homelab-docker-compose/blob/main/vaultwarden/docker-compose.yml): Bitwarden Server API written in Rust
-* [Watchtower](https://github.com/andronics/homelab-docker-compose/blob/main/watchtower/docker-compose.yml): Automated Docker Container Base Image Updates
+* [Audiobookshelf](https://github.com/andronics/homelab-docker-compose/blob/main/audiobookshelf/compose.yml): Audiobook & Podcast Server
+* [Authentik](https://github.com/andronics/homelab-docker-compose/blob/main/authentik/compose.yml): Identity Provider & SSO Solution
+* [Baserow](https://github.com/andronics/homelab-docker-compose/blob/main/baserow/compose.yml): No-Code Database Platform
+* [Bazarr](https://github.com/andronics/homelab-docker-compose/blob/main/bazarr/compose.yml): Subtitle Management for Sonarr & Radarr
+* [Booklore](https://github.com/andronics/homelab-docker-compose/blob/main/booklore/compose.yml): Book Library Management
+* [Calibre](https://github.com/andronics/homelab-docker-compose/blob/main/calibre/compose.yml): Powerful eBook Manager
+* [Checkmk](https://github.com/andronics/homelab-docker-compose/blob/main/checkmk/compose.yml): Infrastructure Monitoring
+* [Code](https://github.com/andronics/homelab-docker-compose/blob/main/code/compose.yml): VS Code In The Browser
+* [Cross-seed](https://github.com/andronics/homelab-docker-compose/blob/main/cross-seed/compose.yml): Torrent Cross-Seeding Automation
+* [Crowdsec](https://github.com/andronics/homelab-docker-compose/blob/main/crowdsec/compose.yml): Curated Threat Intelligence Powered By The Crowd
+* [Emby](https://github.com/andronics/homelab-docker-compose/blob/main/emby/compose.yml): Media Server That Streams Audio & Video To Various Devices
+* [Error-pages](https://github.com/andronics/homelab-docker-compose/blob/main/error-pages/compose.yml): Custom Error Pages For Traefik
+* [Flaresolverr](https://github.com/andronics/homelab-docker-compose/blob/main/flaresolverr/compose.yml): Proxy Server To Bypass Cloudflare Protection
+* [Homer](https://github.com/andronics/homelab-docker-compose/blob/main/homer/compose.yml): Full Static HTML/JS Dashboard
+* [Immich](https://github.com/andronics/homelab-docker-compose/blob/main/immich/compose.yml): Photo & Video Management Solution
+* [Kavita](https://github.com/andronics/homelab-docker-compose/blob/main/kavita/compose.yml): Multi Format Digital Library
+* [Lidarr](https://github.com/andronics/homelab-docker-compose/blob/main/lidarr/compose.yml): Music Collection Manager For Usenet And BitTorrent
+* [Metube](https://github.com/andronics/homelab-docker-compose/blob/main/metube/compose.yml): YouTube-DL Web Interface
+* [MQTT](https://github.com/andronics/homelab-docker-compose/blob/main/mqtt/compose.yml): Message Broker Service
+* [N8N](https://github.com/andronics/homelab-docker-compose/blob/main/n8n/compose.yml): Workflow Automation Platform
+* [Navidrome](https://github.com/andronics/homelab-docker-compose/blob/main/navidrome/compose.yml): Your Music Collection From Anywhere
+* [NordVPN](https://github.com/andronics/homelab-docker-compose/blob/main/nordvpn/compose.yml): VPN Container Network
+* [Nuclio](https://github.com/andronics/homelab-docker-compose/blob/main/nuclio/compose.yml): Serverless Functions Platform
+* [OpenWebUI](https://github.com/andronics/homelab-docker-compose/blob/main/openwebui/compose.yml): Web UI For LLM Interactions
+* [Portainer](https://github.com/andronics/homelab-docker-compose/blob/main/portainer/compose.yml): Container Management
+* [Prowlarr](https://github.com/andronics/homelab-docker-compose/blob/main/prowlarr/compose.yml): Indexer Manager & Proxy For *ARR PVR Apps
+* [qBittorrent](https://github.com/andronics/homelab-docker-compose/blob/main/qbittorrent/compose.yml): BitTorrent Client
+* [Radarr](https://github.com/andronics/homelab-docker-compose/blob/main/radarr/compose.yml): Movie Collection Manager
+* [Rclone](https://github.com/andronics/homelab-docker-compose/blob/main/rclone/compose.yml): Cloud Storage Sync
+* [Readarr](https://github.com/andronics/homelab-docker-compose/blob/main/readarr/compose.yml): Book Collection Manager
+* [Recyclarr](https://github.com/andronics/homelab-docker-compose/blob/main/recyclarr/compose.yml): TRaSH Guides Sync For Sonarr & Radarr
+* [ROMM](https://github.com/andronics/homelab-docker-compose/blob/main/romm/compose.yml): ROM Library Manager
+* [Searxng](https://github.com/andronics/homelab-docker-compose/blob/main/searxng/compose.yml): Privacy-Respecting Metasearch Engine
+* [Seedbox](https://github.com/andronics/homelab-docker-compose/blob/main/seedbox/compose.yml): Seedbox Management
+* [Sonarr](https://github.com/andronics/homelab-docker-compose/blob/main/sonarr/compose.yml): Television Collection Manager
+* [Tdarr](https://github.com/andronics/homelab-docker-compose/blob/main/tdarr/compose.yml): Distributed Transcoding System
+* [Termix](https://github.com/andronics/homelab-docker-compose/blob/main/termix/compose.yml): Terminal Service
+* [Tor](https://github.com/andronics/homelab-docker-compose/blob/main/tor/compose.yml): Overlay Network Enabling Anonymous Communication
+* [Traefik](https://github.com/andronics/homelab-docker-compose/blob/main/traefik/compose.yml): Cloud Native Application Proxy
+* [Traktarr](https://github.com/andronics/homelab-docker-compose/blob/main/traktarr/compose.yml): Trakt Monitoring Daemon That Adds New TV Series & Movies
+* [TVmaze-sync](https://github.com/andronics/homelab-docker-compose/blob/main/tvmaze-sync/compose.yml): TV Show Tracking Sync
+* [Unpackerr](https://github.com/andronics/homelab-docker-compose/blob/main/unpackerr/compose.yml): Monitors Downloads And Automatically Extracts Archives
+* [Whisparr](https://github.com/andronics/homelab-docker-compose/blob/main/whisparr/compose.yml): Adult Content Management
 
 For detailed information on each service, refer to the respective docker-compose.yml file and any accompanying documentation within the service directory.
 
