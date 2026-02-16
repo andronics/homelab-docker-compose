@@ -1,10 +1,8 @@
-version: "3.9"
-
 services:
   
-  server:
+  app:
     image: ghcr.io/linuxserver/calibre:latest
-    container_name: calibre_server
+    container_name: calibre
     environment:
       PGID: 1000
       PUID: 1000
@@ -12,22 +10,22 @@ services:
       UMASK: 022
     labels:
       traefik.enable: true
-      traefik.http.routers.calibre.entrypoints: https-internal,https-external
+      traefik.http.routers.calibre.entrypoints: https-public
       traefik.http.services.calibre.loadbalancer.passHostHeader: true
-      traefik.http.services.calibre.loadbalancer.server.port: 8080
+      traefik.http.services.calibre.loadbalancer.server.url: http://authentik:9000
     networks:
-      - proxy
+      - backend
     restart: unless-stopped
     security_opt:
       - "seccomp=unconfined"
     volumes:
-      - server_config:/config
+      - app-config:/config
       - /mnt/media:/mnt/media
       
 networks:
-  proxy:
+  backend:
     external: true
 
 volumes:
-  server_config:
+  app-config:
     driver: local

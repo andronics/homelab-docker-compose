@@ -1,0 +1,73 @@
+services:
+
+  
+  app:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    configs:
+      - source: crowdsec_acquis
+        target: /etc/crowdsec/acquis.yaml
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik Dominic-Wagner/vaultwarden LePresidente/authelia"
+      GID: "${GID-1000}"
+    networks:
+      - backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    volumes:
+      - app-config:/etc/crowdsec
+      - app-data:/var/lib/crowdsec
+      - traefik_app-log:/var/log/traefik
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  bouncer:
+    image: fbonalair/traefik-crowdsec-bouncer:latest
+    container_name: crowdsec-bouncer
+    depends_on:
+      - app
+    environment:
+      CROWDSEC_BOUNCER_API_KEY: ${CROWDSEC_BOUNCER_API_KEY:-super_secret_api_key} # docker exec crowdsec cscli bouncers add traefik_bouncer -k ${CROWDSEC_BOUNCER_API_KEY}
+      CROWDSEC_AGENT_HOST: crowdsec:8080
+    networks:
+      - backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  backend:
+    external: true
+    
+volumes:
+  app-config:
+    driver: local
+  app-data:
+    driver: local
+  traefik_app-log:
+    external: true
+
+configs:
+  crowdsec_acquis:
+    content: |
+      filenames:
+        - /var/log/authelia/*
+      labels:
+        type: authelia
+      ---
+      filenames:
+        - /var/log/traefik/*
+      labels:
+        type: traefik
+      ---
+      filenames:
+        - /var/log/vaultwarden/*
+      labels:
+        type: Vaultwarden
+
+
+

@@ -1,0 +1,60 @@
+
+services:
+
+  app:
+    image: ghcr.io/linuxserver/sonarr:develop
+    container_name: sonarr
+    configs:
+      - source: app_config
+        target: /config/config.xml
+    environment:
+      AUTO_UPDATE: true
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.sonarr.entrypoints: https-public
+      traefik.http.services.sonarr.loadbalancer.passHostHeader: true
+      traefik.http.services.sonarr.loadbalancer.server.url: http://authentik:9000
+    networks:
+      backend:
+    ports:
+      - ${SONARR_PORT:-8989}:${SONARR_PORT:-8989}
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+      - /mnt/media:/mnt/media
+      - /mnt/transfer:/mnt/transfer
+
+  metrics:
+    image: ghcr.io/onedr0p/exportarr:v1.6.0
+    container_name: sonarr-metrics
+    command: ["sonarr"]
+    environment:
+      APIKEY: ${SONARR_API_KEY:-super_secret_api_key}
+      PORT: 9990
+      URL: "http://sonarr:${SONARR_PORT:-8989}"
+    networks:
+      - backend
+    restart: unless-stopped
+
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      <Config>
+        <ApiKey>${SONARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${SONARR_PORT:-8989}</Port>
+        <LogLevel>${SONARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>Basic</AuthenticationMethod>
+        <AuthenticationRequired>Enabled</AuthenticationRequired>
+      </Config>

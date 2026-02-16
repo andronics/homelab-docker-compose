@@ -1,0 +1,21 @@
+services:
+
+  app:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    environment:
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.portainer.entrypoints: https-public
+      traefik.http.services.portainer.loadbalancer.passHostHeader: true
+      traefik.http.services.portainer.loadbalancer.server.port: 9000
+    networks:
+      backend:
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  backend:
+    external: true

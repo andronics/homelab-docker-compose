@@ -1,0 +1,56 @@
+services:
+
+  app:
+    image: ghcr.io/linuxserver/readarr:nightly-0.4.19.2811-ls400
+    container_name: readarr
+    configs:
+      - source: app_config
+        target: /config/config.xml
+    environment:
+      AUTO_UPDATE: true
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.readarr.entrypoints: https-public
+      traefik.http.services.readarr.loadbalancer.passHostHeader: true
+      traefik.http.services.readarr.loadbalancer.server.url: http://authentik:9000
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+      - /mnt/media:/mnt/media
+      - /mnt/transfer:/mnt/transfer
+
+  metrics:
+    image: ghcr.io/onedr0p/exportarr:v1.6.0
+    container_name: readarr-metrics
+    command: ["readarr"]
+    environment:
+      APIKEY: ${READARR_API_KEY:-super_secret_api_key}
+      PORT: 9990
+      URL: "http://readarr:${READARR_PORT:-8787}"
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      <Config>
+        <ApiKey>${READARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${READARR_PORT:-8787}</Port>
+        <LogLevel>${READARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>Basic</AuthenticationMethod>
+        <AuthenticationRequired>Enabled</AuthenticationRequired>
+      </Config>

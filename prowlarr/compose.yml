@@ -1,0 +1,60 @@
+services:
+  
+  app:
+    image: ghcr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    configs:
+      - source: app_config
+        target: /config/config.xml
+    environment:
+      AUTO_UPDATE: true
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.prowlarr.entrypoints: https-public
+      traefik.http.services.prowlarr.loadbalancer.passHostHeader: true
+      traefik.http.services.prowlarr.loadbalancer.server.url: http://authentik:9000
+    networks:
+      backend:
+      tor:
+      vpn:
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+
+  metrics:
+    image: ghcr.io/onedr0p/exportarr:v1.6.0
+    container_name: prowlarr-metrics
+    command: ["prowlarr"]
+    environment:
+      APIKEY: ${PROWLARR_API_KEY:-super_secret_api_key}
+      PORT: 9990
+      URL: "http://prowlarr:${PROWLARR_PORT:-9696}"
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true
+  tor:
+    external: true
+  vpn:
+    external: true
+    
+volumes:
+  app-config:
+    driver: local
+
+configs:
+  app_config:
+    content: |
+      <Config>
+        <ApiKey>${PROWLARR_API_KEY:-super_secret_api_key}</ApiKey>
+        <Port>${PROWLARR_PORT:-9696}</Port>
+        <LogLevel>${PROWLARR_LOG_LEVEL:-info}</LogLevel>
+        <AuthenticationMethod>External</AuthenticationMethod>
+        <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+      </Config>

@@ -1,12 +1,9 @@
-version: "3"
-
 services:
-  
-  server:
+  app:
     image: ghcr.io/linuxserver/code-server:latest
-    container_name: code_server
+    container_name: code
     configs:
-      - source: server_user_settings
+      - source: app_user_settings
         target: /config/data/User/settings.json
     environment:
       AUTO_UPDATE: true
@@ -14,33 +11,32 @@ services:
       PUID: 1000
       PGID: 1000
       SUDO_PASSWORD: ${CODE_SUDO_PASSWORD:-super_secret_sudo_password}
-      VSCODE_EXTENSION_IDS: catppuccin.catppuccin-vsc|ms-azuretools.vscode-docker|piousdeer.adwaita-theme
+      VSCODE_EXTENSION_IDS: catppuccin.catppuccin-vsc|ms-azuretools.vscode-docker|piousdeer.adwaita-theme|Anthropic.claude-code|bierner.markdown-mermaid
       TZ: Europe/London
     labels:
       traefik.enable: true
-      traefik.http.routers.code.entrypoints: https-internal,https-external
+      traefik.http.routers.code.entrypoints: https-public
       traefik.http.services.code.loadbalancer.passHostHeader: true
+      traefik.http.services.code.loadbalancer.server.url: http://authentik:9000
     networks:
       - backend
-      - proxy
     restart: unless-stopped
     volumes:
-      - server_config:/config
+      - app-config:/config
       - /mnt:/mnt
+      - /.pool:/.pool
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
 networks:
   backend:
     external: true
-  proxy:
-    external: true
 
 volumes:
-  server_config:
+  app-config:
     driver: local
 
 configs:
-  server_user_settings:
+  app_user_settings:
     content: |  
       {
           "workbench.colorTheme": "Catppuccin Macchiato",

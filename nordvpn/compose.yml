@@ -1,0 +1,78 @@
+x-nordvpn: &nordvpn-base
+  image: ghcr.io/andronics/nordvpn-proxy:latest
+  cap_add:
+    - NET_ADMIN
+  devices:
+    - /dev/net/tun
+  dns:
+    - 1.1.1.1
+    - 8.8.8.9
+    - 9.9.9.9
+  env_file:
+    - .env
+  environment: &nordvpn-env-base
+    LOCAL_NETWORK: ${NORDVPN_LOCAL_NETWORK:-10.0.0.0/24}
+    PASSWORD: ${NORDVPN_PASSWORD}
+    USERNAME: ${NORDVPN_USERNAME}
+  healthcheck:
+    test: ["CMD-SHELL","echo", "1"]
+    interval: 60s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+  networks:
+    vpn:
+  restart: unless-stopped
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+
+services:
+
+  al:
+    <<: *nordvpn-base
+    container_name: nordvpn-al
+    environment:
+      <<: *nordvpn-env-base
+      COUNTRY: AL
+    ports:
+      - 8120:8118
+
+  gb:
+    <<: *nordvpn-base
+    container_name: nordvpn-gb
+    environment:
+      <<: *nordvpn-env-base
+      COUNTRY: GB
+    ports:
+      - 8121:8118
+
+  in:
+    <<: *nordvpn-base
+    container_name: nordvpn-in
+    environment:
+      <<: *nordvpn-env-base
+      COUNTRY: IN
+    ports:
+      - 8122:8118
+
+  tr:
+    <<: *nordvpn-base
+    container_name: nordvpn-tr
+    environment:
+      <<: *nordvpn-env-base
+      COUNTRY: TR
+    ports:
+      - 8123:8118
+
+  us:
+    <<: *nordvpn-base
+    container_name: nordvpn-us
+    environment:
+      <<: *nordvpn-env-base
+      COUNTRY: US
+    ports:
+      - 8124:8118
+
+networks:
+  vpn:
+    external: true

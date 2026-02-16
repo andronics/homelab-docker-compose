@@ -1,12 +1,14 @@
-version: "3.9"
-
 services:
   
-  server:
+  app:
     image: ghcr.io/haveagitgat/tdarr:latest
-    container_name: tdarr_server
+    pull_policy: always
+    container_name: tdarr
     deploy:
       resources:
+        limits:
+          cpus: 8
+          memory: 8G
         reservations:
           devices:
             - driver: nvidia
@@ -21,31 +23,33 @@ services:
       UMASK_SET: 002
       VERSION: docker
       internalNode: "true"
-    labels:
-      traefik.enable: true
-      traefik.http.routers.tdarr.entrypoints: https-internal,https-external
-      traefik.http.services.tdarr.loadbalancer.passHostHeader: true
     logging:
       options:
         max-size: 10m
         max-file: 5
+    labels:
+      traefik.enable: true
+      traefik.http.routers.tdarr.entrypoints: https-public
+      traefik.http.services.tdarr.loadbalancer.passHostHeader: true
+      traefik.http.services.tdarr.loadbalancer.server.url: http://authentik:9000
     networks:
-      - proxy
+      backend:
     restart: unless-stopped
     volumes:
-      - server_config:/app/configs
-      - server_data:/app/server
-      - server_log:/app/logs
-      - /.pool/nvme:/.pool/nvme
+      - app-config:/app/configs
+      - app-data:/app/server
+      - app-log:/app/logs
+      - /.pool/local:/.pool/local
+
          
 networks:
-  proxy:
+  backend:
     external: true
 
 volumes:
-  server_config:
+  app-config:
     driver: local
-  server_data:
+  app-data:
     driver: local
-  server_log:
+  app-log:
     driver: local

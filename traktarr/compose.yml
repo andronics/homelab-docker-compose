@@ -1,12 +1,10 @@
-version: "3.9"
-
 services:
   
-  server:
+  app:
     image: eafxx/traktarr:latest
-    container_name: traktarr_server
+    container_name: traktarr
     configs:
-      - source: server_config
+      - source: config
         target: /config/config.json
     environment:
       DELAYL: 2.5	    
@@ -19,27 +17,27 @@ services:
       PUID: 1000
       TZ: Europe/London
     networks:
-      - proxy
+      - backend
     restart: unless-stopped
     volumes:
-      - server_config:/config
+      - app-config:/config
 
 networks:
-  proxy:
+  backend:
     external: true
 
 volumes:
-  server_config:
+  app-config:
     driver: local
 
 configs:
-  server_config:
+  config:
     content: |
       {
         "automatic": {
           "movies": {
-            "anticipated": 3,
-            "boxoffice": 10,
+            "anticipated": 30,
+            "boxoffice": 30,
             "interval": 20,
             "lists": {
               "https://trakt.tv/users/andronics/lists/movies-based-on-recently-watched-couchmoney-tv": 20,
@@ -48,8 +46,8 @@ configs:
               "https://trakt.tv/users/kcador/recommendations": 20,
               "https://trakt.tv/users/zyrus/lists/80s-classics": 20
             },
-            "popular": 3,
-            "trending": 3
+            "popular": 30,
+            "trending": 30
           },
           "shows": {
             "anticipated": 10,
@@ -65,7 +63,7 @@ configs:
           }
         },
         "core": {
-          "debug": true
+          "debug": false
         },
         "filters": {
           "movies": {
@@ -84,7 +82,7 @@ configs:
               "music"
             ],
             "blacklisted_max_runtime": 0,
-            "blacklisted_max_year": 2024,
+            "blacklisted_max_year": 0,
             "blacklisted_min_runtime": 60,
             "blacklisted_min_year": 1960,
             "blacklisted_title_keywords": [],
@@ -117,7 +115,7 @@ configs:
               "special-interest"
             ],
             "blacklisted_max_runtime": 0,
-            "blacklisted_max_year": 2023,
+            "blacklisted_max_year": 0,
             "blacklisted_min_runtime": 15,
             "blacklisted_min_year": 1980,
             "blacklisted_networks": [],
@@ -143,7 +141,7 @@ configs:
           }
         },
         "notifications": {
-          "verbose": true
+          "verbose": false
         },
         "omdb": {
           "api_key": "${TRAKTARR_OMDB_API_KEY:-super_secret_omdb_api_key}"
@@ -151,26 +149,26 @@ configs:
         "radarr": {
           "api_key": "${TRAKTARR_RADARR_API_KEY:-super_secret_radarr_api_key}",
           "minimum_availability": "released",
-          "quality": "HD-720p",
+          "quality": "HD - 720p/1080p",
           "root_folder": "/mnt/media/movies/",
-          "url": "http://radarr_server:7878/"
+          "url": "http://radarr:7878/"
         },
         "sonarr": {
           "api_key": "${TRAKTARR_SONARR_API_KEY:-super_secret_sonarr_api_key}",
           "language": "English",
-          "quality": "HD-720p",
+          "quality": "HD - 720p/1080p",
           "root_folder": "/mnt/media/tv/",
           "season_folder": true,
           "tags": [
             "trakt"
           ],
-          "url": "http://sonarr_server:8989/"
+          "url": "http://sonarr:8989/"
         },
         "trakt": {
           "${TRAKTARR_TRAKT_USER_LOGIN:-super_secret_trakt_user_login}": {
             "access_token": "${TRAKTARR_TRAKT_USER_ACCESS_TOKEN:-super_secret_trakt_user_access_token}",
-            "created_at": 1712058532,
-            "expires_in": 7776000,
+            "created_at": ${TRAKTARR_TRAKT_USER_CREATED_AT:-super_secret_trakt_user_created_at},
+            "expires_in": ${TRAKTARR_TRAKT_USER_EXPIRES_IN:-super_secret_trakt_user_expires_in},
             "refresh_token": "${TRAKTARR_TRAKT_USER_REFRESH_TOKEN:-super_secret_trakt_user_refresh_token}",
             "scope": "public",
             "token_type": "Bearer"

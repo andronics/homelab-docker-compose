@@ -1,41 +1,40 @@
-version: "3"
-
 services:
   
-  server:
+  app:
     image: deluan/navidrome:latest
-    container_name: navidrome_server
+    container_name: navidrome
     configs:
-      - source: server_config
+      - source: app_config
         target: /app/navidrome.toml
+        uid: "1000"
+        gid: "1000"
     environment:
       PUID: 1000
       PGID: 1000
       TZ: Europe/London
     labels:
       traefik.enable: true
-      traefik.http.routers.navidrome.entrypoints: https-internal,https-external
+      traefik.http.routers.navidrome.entrypoints: https-public
       traefik.http.services.navidrome.loadbalancer.passHostHeader: true
+      traefik.http.services.navidrome.loadbalancer.server.url: http://authentik:9000
     networks:
-      - proxy
+      - backend
     restart: unless-stopped
     user: 1000:1000
     volumes:
-      - server_data:/data
+      - app-data:/data
       - /mnt/media/music:/music
- 
+
 networks:
-  proxy:
+  backend:
     external: true
 
 volumes:
-  server_data:
-    driver: local
-  server_music:
+  app-data:
     driver: local
 
 configs:
-  server_config:
+  app_config:
     content: |
       LogLevel = 'DEBUG'
       ScanSchedule = '@every 1h'
@@ -48,6 +47,9 @@ configs:
 
       DataFolder = "/data"
       MusicFolder = "/music"
+
+      ReverseProxyUserHeader = "X-authentik-username"
+      ReverseProxyWhitelist = "0.0.0.0/0"
 
       [LastFM]
       ApiKey = "${NAVIDROME_LASTFM_API_KEY:-super_secret_lastfm_api_key}"

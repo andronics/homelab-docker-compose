@@ -1,15 +1,13 @@
-version: "3.9"
-
 services:
-  
-  server:
+  app:
     image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr_server
+    container_name: flaresolverr
     environment:
       CAPTCHA_SOLVER: none
       LOG_HTML: false
       LOG_LEVEL: info
       TZ: Europe/London
+
     networks:
       - backend
     restart: unless-stopped

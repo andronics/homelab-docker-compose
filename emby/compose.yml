@@ -1,0 +1,72 @@
+services:
+
+  app:
+    image: ghcr.io/linuxserver/emby:latest
+    container_name: emby
+    devices:
+      - /dev/fuse
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
+    labels:
+      traefik.enable: true
+      traefik.http.routers.emby.entrypoints: https-public
+      traefik.http.services.emby.loadbalancer.passHostHeader: true
+    networks:
+      - backend
+    ports:
+      - 8096:8096
+      - 8920:8920
+    restart: unless-stopped
+    volumes:
+      - app-backup:/backup
+      - app-config:/config
+      - /.vfs/media:/.vfs/media
+      - /mnt/media:/mnt/media
+
+  auth:
+    image: ghcr.io/goauthentik/ldap
+    container_name: emby-auth
+    environment:
+      AUTHENTIK_HOST: ${EMBY_AUTHENTIK_HOST}
+      AUTHENTIK_HOST_BROWSER: ${EMBY_AUTHENTIK_HOST_BROWSER}
+      AUTHENTIK_INSECURE: ${EMBY_AUTHENTIK_INSECURE}
+      AUTHENTIK_TOKEN: ${EMBY_AUTHENTIK_TOKEN}
+    networks:
+      backend:
+    restart: unless-stopped
+
+  metrics:
+    image: bagul/goemby_exporter:latest
+    container_name: emby-metrics
+    configs:
+      - source: metrics_config
+        target: /config/exporter.yml
+    environment:
+      CONFIG_FILE: /config/exporter.yml
+      TZ: Europe/London
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-backup:
+    driver: local
+  app-config:
+    driver: local
+
+configs:
+  metrics_config:
+    content: |
+      server:
+        url: "http://emby"
+        port: 8096
+        token: "${EMBY_API_TOKEN:-super_secret_api_token}"
+        userID: "andronics"
+      options:
+        geoip: true

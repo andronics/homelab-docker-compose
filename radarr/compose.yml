@@ -1,24 +1,10 @@
-version: "3.9"
-
 services:
 
-  exporter:
-    image: ghcr.io/onedr0p/exportarr:v1.6.0
-    container_name: radarr_exporter
-    command: ["radarr"]
-    environment:
-      APIKEY: ${RADARR_API_KEY:-super_secret_api_key}
-      PORT: 9990
-      URL: "http://radarr_server:${RADARR_PORT:-7878}"
-    networks:
-      - backend
-    restart: unless-stopped
-  
-  server:
+  app:
     image: ghcr.io/linuxserver/radarr:latest
-    container_name: radarr_server
+    container_name: radarr
     configs:
-      - source: server_config
+      - source: app_config
         target: /config/config.xml
     environment:
       AUTO_UPDATE: true
@@ -27,31 +13,41 @@ services:
       TZ: Europe/London
     labels:
       traefik.enable: true
-      traefik.http.routers.radarr.entrypoints: https-internal,https-external
-      traefik.http.routers.radarr.middlewares: radarr@docker
-      traefik.http.middlewares.radarr.headers.customrequestheaders.Authorization: Basic ${RADARR_BASIC_AUTH_CREDENTIALS:-super_secret_basic_auth_credentials}
+      traefik.http.routers.radarr.entrypoints: https-public
       traefik.http.services.radarr.loadbalancer.passHostHeader: true
+      traefik.http.services.radarr.loadbalancer.server.url: http://authentik:9000
     networks:
       - backend
-      - proxy
+    ports:
+      - ${RADARR_PORT:-7878}:${RADARR_PORT:-7878}
     restart: unless-stopped
     volumes:
-      - server_config:/config
+      - app-config:/config
       - /mnt/media:/mnt/media
       - /mnt/transfer:/mnt/transfer
+
+  metrics:
+    image: ghcr.io/onedr0p/exportarr:v1.6.0
+    container_name: radarr-metrics
+    command: ["radarr"]
+    environment:
+      APIKEY: ${RADARR_API_KEY:-super_secret_api_key}
+      PORT: 9990
+      URL: "http://radarr:${RADARR_PORT:-7878}"
+    networks:
+      - backend
+    restart: unless-stopped
       
 networks:
   backend:
     external: true
-  proxy:
-    external: true
 
 volumes:
-  server_config:
+  app-config:
     driver: local
 
 configs:
-  server_config:
+  app_config:
     content: |
       <Config>
         <ApiKey>${RADARR_API_KEY:-super_secret_api_key}</ApiKey>

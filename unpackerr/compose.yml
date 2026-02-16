@@ -1,12 +1,10 @@
-version: "3.9"
-
 services:
   
-  server:
+  app:
     image: golift/unpackerr
-    container_name: unpackerr_server
+    container_name: unpackerr
     configs:
-      - source: server_config
+      - source: config
         target: /config/unpackerr.conf
     environment:
       PUID: 1000
@@ -14,31 +12,28 @@ services:
       TZ: Europe/London
     labels:
       traefik.enable: true
-      traefik.http.routers.unpackerr.entrypoints: https-internal,https-external
+      traefik.http.routers.unpackerr.entrypoints: https-public
       traefik.http.services.unpackerr.loadbalancer.passHostHeader: true
       traefik.http.services.unpackerr.loadbalancer.server.port: 5656
     networks:
       - backend
-      - proxy
     restart: unless-stopped
     security_opt:
       - no-new-privileges=true
     volumes:
-      - server_config:/config
+      - app-config:/config
       - /mnt/transfer:/mnt/transfer
  
 networks:
   backend:
     external: true
-  proxy:
-    external: true
 
 volumes:
-  server_config:
+  app-config:
     driver: local
 
 configs:
-  server_config:
+  config:
     content: |
       debug = true
       quiet = false
@@ -66,25 +61,25 @@ configs:
       extract_isos = false
 
       [[lidarr]]
-      url = "http://lidarr_server:8686"
+      url = "http://lidarr:8686"
       api_key = "${UNPACKERR_LIDARR_API_KEY:-super_secret_lidarr_api_key}"
       paths = ['/mnt/transfer/complete/music']
       protocols = "torrent"
 
       [[radarr]]
-      url = "http://radarr_server:7878"
+      url = "http://radarr:7878"
       api_key = "${UNPACKERR_RADARR_API_KEY:-super_secret_radarr_api_key}"
       paths = ['/mnt/transfer/complete/movies']
       protocols = "torrent"
 
       [[readarr]]
-      url = "http://readarr_server:8787"
+      url = "http://readarr:8787"
       api_key = "${UNPACKERR_READARR_API_KEY:-super_secret_readarr_api_key}"
       paths = ['/mnt/transfer/complete/books']
       protocols = "torrent"
 
       [[sonarr]]
-      url = "http://sonarr_server:8989"
+      url = "http://sonarr:8989"
       api_key = "${UNPACKERR_SONARR_API_KEY:-super_secret_sonarr_api_key}"
       paths = ['/mnt/transfer/complete/tv']
       protocols = "torrent"

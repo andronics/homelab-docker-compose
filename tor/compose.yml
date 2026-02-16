@@ -1,10 +1,8 @@
-version: "3.9"
-
 services:
 
-  server:
+  app:
     image: peterdavehello/tor-socks-proxy:latest
-    container_name: tor_server
+    container_name: tor
     dns:
       - 1.1.1.1
       - 8.8.4.4
@@ -16,11 +14,13 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - tor
+      tor:
+    ports:
+      - 9150:9150
     restart: unless-stopped
     volumes:
-      - server_config:/etc/tor
-      - server_data:/var/lib/tor
+      - app-config:/etc/tor
+      - app-data:/var/lib/tor
       - /etc/localtime:/etc/localtime:ro
 
 networks:
@@ -28,7 +28,9 @@ networks:
     external: true
 
 volumes:
-  server_config:
+  app-config:
     driver: local
-  server_data:
+  app-data:
     driver: local
+
+    otpauth://totp/andronicsio:andronics@gmail.com?secret=HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ&issuer=andronicsio

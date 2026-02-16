@@ -1,0 +1,38 @@
+services:
+
+  app:
+    image: b4bz/homer:latest
+    container_name: homer
+    environment:
+      UID: 1000
+      GID: 1000
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - app-data:/www/assets
+
+  auth:
+    image: ghcr.io/goauthentik/proxy
+    container_name: homer-auth
+    environment:
+      AUTHENTIK_HOST: ${HOMER_AUTHENTIK_HOST}
+      AUTHENTIK_HOST_BROWSER: ${HOMER_AUTHENTIK_HOST_BROWSER}
+      AUTHENTIK_INSECURE: ${HOMER_AUTHENTIK_INSECURE}
+      AUTHENTIK_TOKEN: ${HOMER_AUTHENTIK_TOKEN}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.homer.entrypoints: https-public
+      traefik.http.routers.homer.rule: Host(`andronics.io`) || Header(`X-Forwarded-Host`, `andronics.io`)
+      traefik.http.services.homer.loadbalancer.passHostHeader: true
+    networks:
+      backend:
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-data:
+    driver: local
