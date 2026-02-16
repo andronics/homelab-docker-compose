@@ -16,9 +16,7 @@ This repository contains Docker-Compose files used to manage and orchestrate var
 8. [Contact](#contact)
 
 ## Introduction
-This repository aims to simplify the setup and management of containerized services in a homelab environment using Docker-Compose. Each service is defined in a separate Docker-Compose file, making it easy to start, stop, and configure as needed.
-
-
+This repository aims to simplify the setup and management of containerized services in a homelab environment using Docker Compose. Each service is defined in a separate compose file, making it easy to start, stop, and configure as needed.
 
 ## Prerequisites
 
@@ -35,20 +33,20 @@ git clone https://github.com/andronics/homelab-docker-compose.git
 cd homelab-docker-compose
 ```
 
-## Directory Structure
+### Directory Structure
 The repository is organized as follows:
 
 ```
 homelab-docker-compose/
 ├── audiobookshelf/
-│   └── .env.sample
-│   └── docker-compose.yml
+│   └── .env
+│   └── compose.yml
 ├── service2/
-│   └── docker-compose.yml
+│   └── compose.yml
 └── README.md
 ```
 
-## Starting Services
+### Starting Services
 
 Navigate to the directory of the desired service. If available copy `.env.sample` to `.env` by executing:
 
@@ -56,9 +54,8 @@ Navigate to the directory of the desired service. If available copy `.env.sample
 $ cp '.env.sample' '.env'
 ```
 
-
 ```sh
-$ docker-compose --env-file './.env' up -d
+$ docker compose up -d
 ```
 
 This command starts the service in detached mode.
@@ -110,10 +107,10 @@ This command starts the service in detached mode.
 * [Unpackerr](https://github.com/andronics/homelab-docker-compose/blob/main/unpackerr/compose.yml): Monitors Downloads And Automatically Extracts Archives
 * [Whisparr](https://github.com/andronics/homelab-docker-compose/blob/main/whisparr/compose.yml): Adult Content Management
 
-For detailed information on each service, refer to the respective docker-compose.yml file and any accompanying documentation within the service directory.
+For detailed information on each service, refer to the respective compose.yml file and any accompanying documentation within the service directory.
 
 ## Configuration
-Each service directory contains a docker-compose.yml file which can be customized to fit your needs. Common configurations include:
+Each service directory contains a compose.yml file which can be customized to fit your needs. Common configurations include:
 
 * Ports
 * Environment variables
