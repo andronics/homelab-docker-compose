@@ -1,0 +1,117 @@
+services:
+
+  app:
+    image : ghcr.io/goauthentik/server:2025.10.2
+    command: server
+    container_name: authentik
+    depends_on:
+      - db
+      - queue
+    env_file:
+      - .env
+    environment:
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOKSTRAP_EMAIL:-"admin@andronics.io"}
+      AUTHENTIK_REDIS__HOST: authentik-queue
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__NAME: ${POSTGRES_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: ${POSTGRES_USER:-authentik}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-authentik_super_secret_key}
+    group_add:
+      - 969
+    labels:
+      traefik.enable: true
+      traefik.http.routers.authentik.entrypoints: https-public
+      traefik.http.routers.authentik.rule: Host(`sso.andronics.io`)
+      traefik.http.services.authentik.loadbalancer.passHostHeader: true
+      traefik.http.services.authentik.loadbalancer.server.port: 9000
+    networks:
+      - backend
+    restart: unless-stopped
+    user: root
+    volumes:
+      - app-media:/media
+      - app-templates:/templates
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  db:
+    image: docker.io/library/postgres:14-alpine
+    container_name: authentik-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-authentik}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-authentik}
+      POSTGRES_USER: ${POSTGRES_USER:-authentik}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  queue:
+    image: docker.io/library/redis:alpine
+    command: --save 60 1 --loglevel warning
+    container_name: authentik-queue
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - queue-conf:/usr/local/etc/redis
+      - queue-data:/data
+
+  worker:
+    image: ghcr.io/goauthentik/server:2025.8.3
+    command: worker
+    container_name: authentik-worker
+    depends_on:
+      - db
+      - queue
+    env_file:
+      - .env
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-queue
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__NAME: ${POSTGRES_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: ${POSTGRES_USER:-authentik}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-authentik_super_secret_key}
+    networks:
+      - backend
+    restart: unless-stopped
+    user: root
+    volumes:
+      - app-certs:/certs
+      - app-media:/media
+      - app-templates:/templates
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  app-certs:
+    driver: local
+  app-media:
+    driver: local
+  app-templates:
+    driver: local
+  db-data:
+    driver: local
+  queue-conf:
+    driver: local
+  queue-data:
+    driver: local
