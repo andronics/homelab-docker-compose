@@ -1,0 +1,331 @@
+services:
+
+  app:
+    image: ghcr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    configs:
+      - source: app_categories
+        target: /config/qBittorrent/categories.json
+        mode: 0555
+      - source: app_config
+        target: /config/qBittorrent/qBittorrent.conf
+      - source: app_watched_folders
+        target: /config/qBittorrent/watched_folders.json
+    env_file:
+      - .env
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/London
+    labels:
+      portal.enabled: true
+      portal.name: qBittorrent
+      portal.category: Transfer
+      portal.description: qBittorrent WebUI
+      traefik.enable: true
+      traefik.http.routers.qbittorent.entrypoints: https-public
+      traefik.http.services.qbittorent.loadbalancer.passHostHeader: true
+      traefik.http.services.qbittorent.loadbalancer.server.url: http://authentik:9000
+    networks:
+      backend:
+      tor:
+      vpn:
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+      - app-data:/var/lib/qBittorrent
+      - /mnt/transfer:/mnt/transfer
+
+  rules:
+    image: ghcr.io/andronics/qbt-rules:dev
+    container_name: qbittorrent-rules
+    configs:
+      - source: qbtr_config
+        target: /config//config.yml
+      - source: qbtr_rules
+        target: /config/rules.yml
+    env_file:
+      - .env
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/London
+    networks:
+      backend:
+    restart: unless-stopped
+    volumes:
+      - app-config:/config
+      - /mnt/transfer:/mnt/transfer
+
+  cron:
+    image: alpine:latest
+    container_name: qbittorrent-cron
+
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        echo '*/30 * * * * curl -X POST -H \"X-API-KEY: super_secret_api_key\" \"http://qbittorrent-rules:5000/api/execute?context=cron\"' | crontab - &&
+        crond -f -l 2
+      "
+    depends_on:
+      - rules
+    networks:
+      backend:
+    restart: unless-stopped
+
+
+networks:
+  backend:
+    external: true
+  tor:
+    external: true
+  vpn:
+    external: true
+
+volumes:
+  app-config:
+    driver: local
+  app-data:
+    driver: local
+
+configs:
+  app_categories:
+    content: |
+      {
+        "deleted": {
+            "save_path": "/mnt/transfer/complete/temp-deleted"
+        },
+        "audiobooks": {
+            "save_path": "/mnt/transfer/complete/audiobooks"
+        },
+        "ebooks": {
+            "save_path": "/mnt/transfer/complete/ebooks"
+        },
+        "movies": {
+            "save_path": "/mnt/transfer/complete/movies"
+        },
+        "music": {
+            "save_path": "/mnt/transfer/complete/music"
+        },
+        "seedbox": {
+            "save_path": "/mnt/transfer/complete/seedbox"
+        },
+        "software": {
+            "save_path": "/mnt/transfer/complete/software"
+        },
+        "standup": {
+            "save_path": "/mnt/transfer/complete/standup"
+        },
+        "tv": {
+            "save_path": "/mnt/transfer/complete/tv"
+        }
+      }
+  app_config:
+    content: |
+      [Application]
+      FileLogger\Enabled=true
+      FileLogger\Path=/config/qBittorrent/logs
+
+      [AutoRun]
+      OnTorrentAdded\Enabled=true
+      OnTorrentAdded\Program=/usr/bin/curl -X POST -H \"X-API-KEY: super_secret_api_key\" \"http://qbittorrent-rules:5000/api/execute?context=added&hash=%I\"
+      enabled=true
+      program=/usr/bin/curl -X POST -H \"X-API-KEY: super_secret_api_key\" \"http://qbittorrent-rules:5000/api/execute?context=finished&hash=%I\"
+
+      [BitTorrent]
+      Session\DefaultSavePath=/mnt/transfer/complete
+      Session\DisableAutoTMMByDefault=false
+      Session\DisableAutoTMMTriggers\CategorySavePathChanged=false
+      Session\DisableAutoTMMTriggers\DefaultSavePathChanged=false
+      Session\MaxActiveDownloads=20
+      Session\MaxActiveTorrents=20
+      Session\MaxActiveUploads=20
+      Session\Port=6881
+      Session\QueueingSystemEnabled=true
+      Session\SubcategoriesEnabled=true
+      Session\TempPath=/mnt/transfer/incomplete
+      Session\TempPathEnabled=true
+      Session\TorrentContentLayout=Subfolder
+      Session\TorrentExportDirectory=/mnt/transfer/torrents
+
+      [Core]
+      AutoDeleteAddedTorrentFile=Never
+
+      [LegalNotice]
+      Accepted=true
+
+      [Network]
+      Proxy\AuthEnabled=false
+      Proxy\HostnameLookupEnabled=true
+      Proxy\IP=
+      Proxy\Password=
+      Proxy\Port=@Variant(\0\0\0\x85\x1f\xb6)
+      Proxy\Profiles\BitTorrent=true
+      Proxy\Profiles\Misc=true
+      Proxy\Profiles\RSS=true
+      Proxy\Type=NONE
+      Proxy\Username=
+
+      [Preferences]
+      Downloads\SavePath=/mnt/transfer/complete
+      Downloads\TempPath=/mnt/transfer/incomplete
+      General\Locale=en
+      WebUI\AuthSubnetWhitelist=0.0.0.0/0
+      WebUI\AuthSubnetWhitelistEnabled=true
+      WebUI\CustomHTTPHeaders="content-security-policy: default-src 'self'; style-src 'self' 'unsafe-inline' theme-park.dev raw.githubusercontent.com use.fontawesome.com; img-src 'self' theme-park.dev raw.githubusercontent.com data:; script-src 'self' 'unsafe-inline'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; font-src use.fontawesome.com;"
+      WebUI\CustomHTTPHeadersEnabled=true
+      WebUI\LocalHostAuth=false
+      WebUI\Password_PBKDF2="@ByteArray(ElpMHGA3jibR/4NUE2ffVA==:FTJeoJSK/mQEI5ewQlZlSB+ZTaios5IsPtOuCHsN/eU8b7jInh7gw390SYYeslJZFXVrosp8NnY2TTcYI68XwA==)"
+      WebUI\Username=andronics
+  app_watched_folders:
+    content: |
+      {
+          "/mnt/transfer/autoload": {
+              "add_torrent_params": {
+                  "category": "",
+                  "download_limit": -1,
+                  "download_path": "",
+                  "inactive_seeding_time_limit": -2,
+                  "operating_mode": "AutoManaged",
+                  "ratio_limit": -2,
+                  "save_path": "",
+                  "seeding_time_limit": -2,
+                  "skip_checking": false,
+                  "tags": [
+                  ],
+                  "upload_limit": -1
+              },
+              "recursive": false
+          }
+      }
+  qbtr_config:
+    content: |
+      server:
+        host: 0.0.0.0
+        port: 5000
+        api_key: super_secret_api_key
+      queue:
+        backend: sqlite
+        sqlite_path: /config/qbt-rules.db
+        cleanup_after: 7d
+      client:
+        server_url: http://localhost:5000
+        api_key: super_secret_api_key
+      qbittorrent:
+        host: http://qbittorrent:8080
+        username: andronics
+        password: P0pularation
+      rules:
+        file: /config/rules.yml
+      logging:
+        level: info
+        file: /config/qbt-rules.log
+        trace: true
+        http_access: false
+      engine:
+        dry_run: false
+  qbtr_rules:
+    content: |
+      rules:
+
+        - name: "Remove Archive Based Torrents"
+          stop_on_match: true
+          context: added
+          conditions:
+            all:
+              - field: files.name
+                operator: matches
+                value: '(?i).*\.(rar|zip|7z|tar|gz)$'
+          actions:
+            - type: delete_torrent
+              params:
+                delete_files: true
+
+        - name: Tag IP Torrents
+          conditions:
+            any:
+              - field: trackers.url
+                operator: contains
+                value: 127.0.0.1.stackoverflow.tech
+              - field: trackers.url
+                operator: contains
+                value: async.empirehost.me
+              - field: trackers.url
+                operator: contains
+                value: routing.bgp.technology
+          actions:
+            - type: add_tag
+              params:
+                tags:
+                  - iptorrent.com
+                  - private
+
+        - name: Tag Torrent Day
+          conditions:
+            any:
+              - field: trackers.url
+                operator: contains
+                value: sync.td-peers.com
+              - field: trackers.url
+                operator: contains
+                value: td.jumbohostpro.eu
+          actions:
+            - type: add_tag
+              params:
+                tags:
+                  - torrentday.com
+                  - private
+
+        - name: Tag MyAnonamouse
+          conditions:
+            any:
+              - field: trackers.url
+                operator: contains
+                value: t.myanonamouse.net
+          actions:
+            - type: add_tag
+              params:
+                tags:
+                  - myanonamouse.net
+                  - private
+
+        - name: Seed Private Torrents After Download
+          conditions:
+            all:
+              - field: info.completion_on
+                operator: older_than
+                value: "30 minutes"
+              - field: info.tags
+                operator: in
+                value: ["private"]
+          actions:
+            - type: set_category
+              params:
+                category: seedbox
+            - type: force_start
+
+        - name: Delete Public Torrents After 7 Days or 2.0 Ratio
+          conditions:
+            all:
+              - field: info.category
+                operator: not_in
+                value: ["seedbox"]
+              - field: info.tags
+                operator: not_contains
+                value: "private"
+              - any:
+                - field: info.completion_on
+                  operator: older_than
+                  value: "3 days"
+                - field: info.ratio
+                  operator: ">="
+                  value: 2.0
+          actions:
+            - type: set_category
+              params:
+                category: deleted
+            - type: delete_torrent
+              params:
+                keep_files: true
